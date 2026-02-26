@@ -150,8 +150,8 @@ export default function Page() {
 
       <div className="container">
         <div className="headerWrap">
+          <div className="philosophy">Trauma-Informed by Default</div>
           <div className="brand">
-            <div className="philosophy">Trauma-Informed by Default</div>
             <div className="h1">Personal Guide</div>
             <div className="sub">Internal Rhythm &amp; Code Processing (IRCP)</div>
           </div>

@@ -212,11 +212,15 @@ body{
 .col{display:flex;flex-direction:column;gap:12px}
 
 .philosophy{
+  position:absolute;
+  top:0;
+  right:0;
   font-size:13px;
   letter-spacing:0.08em;
   text-transform:uppercase;
   color:#5c5a55;
   margin-bottom:4px;
+  text-align:right;
 }
 
 .topicCardWin{
@@ -243,12 +247,20 @@ body{
 
 /* More intentional header */
 .headerWrap{
+  position:relative;
   padding: 10px 12px 0;
   margin-bottom: 14px;
 }
 .brand{ gap: 3px; }
-.h1{ font-size: 22px; letter-spacing: .1px; }
+.h1{ font-size: clamp(2rem, 4.8vw, 3.2rem); font-weight: 900; letter-spacing: .1px; line-height: 1.05; }
 .sub{ font-size: 12.5px; }
+
+@media (max-width: 700px){
+  .philosophy{
+    font-size:11px;
+    max-width:50%;
+  }
+}
 
 /* Start card feels like a callout */
 .startCallout{
