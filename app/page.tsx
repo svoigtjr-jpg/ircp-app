@@ -132,7 +132,6 @@ export default function Page() {
 
   return (
     <>
-      <UserCompass />
       {cfg && (
         <div className="northStarFixed" aria-label="North Star">
           <div className="northStarIcon">✦</div>
@@ -152,6 +151,7 @@ export default function Page() {
 
       <div className="container">
         <div className="headerWrap surface">
+          <UserCompass />
           <div className="headerContent">
             <div className="philosophy">Trauma-Informed by Default</div>
             <div className="brand">
