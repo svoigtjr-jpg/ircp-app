@@ -47,54 +47,56 @@ export default function CompassContent() {
         <p className="compassSubtitle">Structure for reflection. Not instruction.</p>
       </header>
 
-      <section className="compassSection compassBreakAfter">
-        <h3>What IRCP Is</h3>
-        <ul>
-          <li>A guided reflection framework for nervous-system-aware journaling.</li>
-          <li>A way to slow down, name experience, and restore clarity.</li>
-          <li>A practical bridge from reaction to aligned action.</li>
-        </ul>
-      </section>
+      <div className="compassPrintColumns">
+        <section className="compassSection compassBreakAfter">
+          <h3>What IRCP Is</h3>
+          <ul>
+            <li>A guided reflection framework for nervous-system-aware journaling.</li>
+            <li>A way to slow down, name experience, and restore clarity.</li>
+            <li>A practical bridge from reaction to aligned action.</li>
+          </ul>
+        </section>
 
-      <section className="compassSection compassBreakAfter">
-        <h3>How to Move Through It</h3>
-        <ol>
-          {FLOW_STEPS.map((step) => (
-            <li key={step}>{step}</li>
-          ))}
-        </ol>
-      </section>
+        <section className="compassSection compassBreakAfter">
+          <h3>How to Move Through It</h3>
+          <ol>
+            {FLOW_STEPS.map((step) => (
+              <li key={step}>{step}</li>
+            ))}
+          </ol>
+        </section>
 
-      <section className="compassSection compassBreakAfter">
-        <h3>The Core Path</h3>
-        <ul className="compassPathList">
-          {CORE_PATH_STEPS.map((step) => (
-            <li key={step.title}>
-              <strong>{step.title}</strong>
-              <span>{step.description}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+        <section className="compassSection compassBreakAfter">
+          <h3>The Core Path</h3>
+          <ul className="compassPathList">
+            {CORE_PATH_STEPS.map((step) => (
+              <li key={step.title}>
+                <strong>{step.title}</strong>
+                <span>{step.description}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="compassSection">
-        <h3>When to Use</h3>
-        <ul>
-          {WHEN_TO_USE.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-      </section>
+        <section className="compassSection">
+          <h3>When to Use</h3>
+          <ul>
+            {WHEN_TO_USE.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </section>
 
-      <section className="compassSection">
-        <h3>When Not to Use</h3>
-        <ul>
-          {WHEN_NOT_TO_USE.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
-        </ul>
-        <p className="compassSafetyNote">Safety note: If you may harm yourself or someone else, contact local emergency services immediately.</p>
-      </section>
+        <section className="compassSection">
+          <h3>When Not to Use</h3>
+          <ul>
+            {WHEN_NOT_TO_USE.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+          <p className="compassSafetyNote">Safety note: If you may harm yourself or someone else, contact local emergency services immediately.</p>
+        </section>
+      </div>
     </article>
   );
 }
