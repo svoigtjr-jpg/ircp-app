@@ -223,12 +223,12 @@ body{
 }
 
 .topicCardWin{
-  background:#f1f6f3;
-  border-color:#d6e4dc;
+  background:#fafaf8;
+  border-color:rgba(60,40,20,.14);
 }
 .topicCardWin:hover{
-  background:#e3efe8;
-  border-color:#b9d3c5;
+  background:#f7f6f3;
+  border-color:rgba(60,40,20,.2);
 }
 
 
@@ -278,6 +278,7 @@ body{
   position:relative;
   overflow:hidden;
 }
+.topicCardWin{ grid-column: 1 / -1; }
 .topicCard:hover{
   transform: translateY(-1px);
   box-shadow: 0 18px 44px rgba(20,16,10,.12);
@@ -290,7 +291,7 @@ body{
   width:4px;
   background: rgba(140,120,90,.22);
 }
-.topicCardWin::before{ background: rgba(110,159,143,.55); }
+.topicCardWin::before{ background: rgba(140,120,90,.28); }
 
 .topicTitleRow{
   display:flex;
