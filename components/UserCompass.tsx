@@ -5,6 +5,8 @@ import CompassContent from './CompassContent';
 
 export default function UserCompass() {
   const [isOpen, setIsOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -17,8 +19,15 @@ export default function UserCompass() {
     }
 
     document.addEventListener('keydown', handleEscape);
+
+    const { overflow } = document.body.style;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
     return () => {
       document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = overflow;
+      triggerRef.current?.focus();
     };
   }, [isOpen]);
 
@@ -31,6 +40,7 @@ export default function UserCompass() {
       <button
         type="button"
         className="userCompassTab"
+        ref={triggerRef}
         onClick={() => setIsOpen(true)}
         aria-label="Open User Compass"
         aria-expanded={isOpen}
@@ -55,7 +65,13 @@ export default function UserCompass() {
               <button type="button" className="btn" onClick={handlePrint}>
                 Print Compass
               </button>
-              <button type="button" className="btn" onClick={() => setIsOpen(false)} aria-label="Close User Compass">
+              <button
+                type="button"
+                className="btn"
+                ref={closeButtonRef}
+                onClick={() => setIsOpen(false)}
+                aria-label="Close User Compass"
+              >
                 Close
               </button>
             </div>

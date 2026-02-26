@@ -375,6 +375,11 @@ h3,
   border-color: hsl(var(--muted) / 0.4);
 }
 
+.userCompassTab:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
 .userCompassOverlay {
   position: fixed;
   inset: 0;
@@ -397,6 +402,11 @@ h3,
   padding: 20px;
   overflow-y: auto;
   animation: compass-slide-in 220ms ease;
+}
+
+.userCompassPanel:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: -2px;
 }
 
 @keyframes compass-slide-in {
@@ -603,4 +613,3 @@ h3,
     page-break-after: auto;
   }
 }
-
