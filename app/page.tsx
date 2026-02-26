@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS, NS_STATES } from '../lib/vocab';
@@ -131,6 +132,7 @@ export default function Page() {
 
   return (
     <>
+      <UserCompass />
       {cfg && (
         <div className="northStarFixed" aria-label="North Star">
           <div className="northStarIcon">✦</div>

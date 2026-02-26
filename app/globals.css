@@ -340,3 +340,197 @@ h3,
 
 .changeTopicBtn { text-decoration-thickness: 1px; text-underline-offset: 2px; }
 .footerNote { opacity: .85; margin-top: 14px; }
+
+.userCompassRoot {
+  position: relative;
+  z-index: 85;
+}
+
+.userCompassTab {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid hsl(var(--border));
+  border-right: none;
+  border-radius: 12px 0 0 12px;
+  padding: 12px 8px;
+  background: hsl(var(--surface));
+  color: var(--text-strong);
+  font-size: 12px;
+  letter-spacing: .03em;
+  font-weight: 700;
+  box-shadow: 0 12px 24px -20px hsl(var(--shadow) / 0.5);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.userCompassTab:hover {
+  background: hsl(var(--surface-2));
+  border-color: hsl(var(--muted) / 0.4);
+}
+
+.userCompassOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: hsl(var(--shadow) / 0.14);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.userCompassPanel {
+  width: min(40vw, 540px);
+  min-width: 360px;
+  max-width: 100%;
+  height: 100vh;
+  background: hsl(var(--surface));
+  border-left: 1px solid hsl(var(--border));
+  box-shadow: -24px 0 44px -30px hsl(var(--shadow) / 0.42);
+  padding: 20px;
+  overflow-y: auto;
+  animation: compass-slide-in 220ms ease;
+}
+
+@keyframes compass-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.userCompassActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.compassTitle {
+  margin: 0;
+  font-size: 1.7rem;
+  color: var(--text-strong);
+}
+
+.compassSubtitle {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.compassSection {
+  padding: 12px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.compassSection:last-child {
+  border-bottom: none;
+}
+
+.compassSection h3 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: var(--text-strong);
+}
+
+.compassSection ul,
+.compassSection ol {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  color: var(--text);
+}
+
+.compassPathList li {
+  display: grid;
+  gap: 3px;
+}
+
+.compassPathList li strong {
+  color: var(--text-strong);
+}
+
+.compassSafetyNote {
+  margin: 10px 0 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .userCompassPanel {
+    width: 100vw;
+    min-width: 0;
+    padding: 18px;
+  }
+}
+
+@media print {
+  @page {
+    margin: 0.85in;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .userCompassOverlay,
+  .userCompassOverlay *,
+  .compass-print,
+  .compass-print * {
+    visibility: visible;
+  }
+
+  .userCompassOverlay {
+    position: static;
+    inset: auto;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    display: block;
+  }
+
+  .userCompassPanel {
+    position: static;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    overflow: visible;
+    animation: none;
+  }
+
+  .userCompassActions,
+  .userCompassTab,
+  .northStarFixed {
+    display: none !important;
+  }
+
+  .compass-print {
+    font-size: 12pt;
+    line-height: 1.4;
+    color: #111;
+  }
+
+  .compassSection {
+    border-bottom: 1px solid #ddd;
+    padding: 14pt 0;
+  }
+
+  .compassBreakAfter {
+    break-after: page;
+  }
+}
