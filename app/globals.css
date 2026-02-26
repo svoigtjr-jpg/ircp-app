@@ -37,8 +37,9 @@ body{
   box-shadow:var(--shadow);
 }
 
-.headerWrap{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
-.brand{display:flex;flex-direction:column;gap:2px}
+.headerWrap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;margin-bottom:12px}
+.headerContent{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.brand{display:flex;flex-direction:column;align-items:center;gap:4px}
 
 .h1{font-size:20px;font-weight:800;letter-spacing:.2px}
 .sub{font-size:13px;color:var(--muted);line-height:1.35}
@@ -212,15 +213,13 @@ body{
 .col{display:flex;flex-direction:column;gap:12px}
 
 .philosophy{
-  position:absolute;
-  top:0;
-  right:0;
-  font-size:13px;
-  letter-spacing:0.08em;
+  font-size:12px;
+  letter-spacing:0.09em;
   text-transform:uppercase;
-  color:#5c5a55;
-  margin-bottom:4px;
-  text-align:right;
+  font-weight:400;
+  color:#444444;
+  margin-bottom:12px;
+  text-align:center;
 }
 
 .topicCardWin{
@@ -247,19 +246,21 @@ body{
 
 /* More intentional header */
 .headerWrap{
-  position:relative;
-  padding: 10px 12px 0;
+  padding: 40px 12px 36px;
   margin-bottom: 14px;
+  background: linear-gradient(180deg, rgba(255,255,255,.78) 0%, rgba(255,255,255,0) 100%);
 }
 .brand{ gap: 3px; }
-.h1{ font-size: clamp(2rem, 4.8vw, 3.2rem); font-weight: 900; letter-spacing: .1px; line-height: 1.05; }
+.h1{ font-size: clamp(1.85rem, 4.4vw, 2.85rem); font-weight: 600; letter-spacing: .1px; line-height: 1.08; color:#1A1A1A; }
 .sub{ font-size: 12.5px; }
+.changeTopicBtn{ text-decoration-thickness:1px; text-underline-offset:2px; }
 
 @media (max-width: 700px){
   .philosophy{
     font-size:11px;
-    max-width:50%;
+    margin-bottom:10px;
   }
+  .headerWrap{ padding:34px 10px 32px; }
 }
 
 /* Start card feels like a callout */
