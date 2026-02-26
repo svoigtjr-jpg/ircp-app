@@ -140,7 +140,7 @@ export default function Page() {
             <div className="col" style={{ gap: 8 }}>
               {cfg.northStar.points.map((p, i) => (
                 <div key={i} className="small">
-                  <strong style={{ color: 'rgba(47,47,47,0.92)' }}>{p.label}:</strong> {p.text}
+                  <strong style={{ color: 'hsl(var(--text) / 0.92)' }}>{p.label}:</strong> {p.text}
                 </div>
               ))}
             </div>
@@ -149,7 +149,7 @@ export default function Page() {
       )}
 
       <div className="container">
-        <div className="headerWrap">
+        <div className="headerWrap surface">
           <div className="headerContent">
             <div className="philosophy">Trauma-Informed by Default</div>
             <div className="brand">
