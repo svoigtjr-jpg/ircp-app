@@ -140,7 +140,7 @@ export default function Page() {
             <div className="col" style={{ gap: 8 }}>
               {cfg.northStar.points.map((p, i) => (
                 <div key={i} className="small">
-                  <strong style={{ color: 'hsl(var(--text) / 0.92)' }}>{p.label}:</strong> {p.text}
+                  <strong style={{ color: 'var(--text-strong)' }}>{p.label}:</strong> {p.text}
                 </div>
               ))}
             </div>
@@ -153,21 +153,20 @@ export default function Page() {
           <div className="headerContent">
             <div className="philosophy">Trauma-Informed by Default</div>
             <div className="brand">
-              <div className="h1">Personal Guide</div>
+              <div className="h1 heroTitle">Personal Guide</div>
               <div className="sub">Internal Rhythm &amp; Code Processing (IRCP)</div>
             </div>
+            {!cfg && (
+              <div className="heroInstruction">
+                Start Below: Choose one topic. The guided questions appear after you choose.
+              </div>
+            )}
           </div>
           {cfg && <button className="btnLink changeTopicBtn" onClick={backToLanding}>Change topic</button>}
         </div>
 
         {!cfg ? (
           <>
-            <div className="card startCallout" style={{ padding: 16, marginBottom: 12 }}>
-              <div className="stepTitle" style={{ fontSize: 15 }}>
-                Start Below: Choose one topic. The guided questions appear after you choose.
-              </div>
-            </div>
-
             <div className="topicGrid">
               {Object.entries(TAB_CONFIGS).map(([k, v]) => (
                 <div key={k} className={`topicCard ${k === "record_win" ? "topicCardWin" : ""}`} role="button" onClick={() => startTopic(k as TabKey)}>
