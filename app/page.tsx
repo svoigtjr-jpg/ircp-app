@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
-import { IRCP_STATES, IRCP_STATES_BY_ID } from '../lib/ircpStates';
+import { IRCP_STATES, IRCP_STATES_BY_ID, resolveIrcpState } from '../lib/ircpStates';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
 
@@ -47,7 +47,7 @@ function nsAccent(nsStateId: string) {
   if (s.includes('mobilized')) return '#c89a52';
   if (s.includes('shutdown')) return '#6f8195';
   if (s.includes('fawn')) return '#9a86a8';
-  if (s.includes('overstimulation')) return '#4f9aa3';
+  if (s.includes('overstimulation') || s.includes('overstim')) return '#4f9aa3';
   if (s.includes('dorsal')) return '#6d6e8b';
   return '#cdbfae';
 }
@@ -88,7 +88,8 @@ export default function Page() {
   }, [selectedTab]);
 
   const accent = nsAccent(entry.nsStateId);
-  const selectedState = entry.nsStateId ? IRCP_STATES_BY_ID[entry.nsStateId] : null;
+  const selectedState = resolveIrcpState(entry.nsStateId, entry.nsStateLabel);
+  const shouldShowStateDetails = Boolean(entry.nsStateId || entry.nsStateLabel);
 
   function startTopic(t: TabKey) {
     setSelectedTab(t);
@@ -236,20 +237,26 @@ export default function Page() {
                       ))}
                     </select>
 
-                    {selectedState && (
+                    {shouldShowStateDetails && (
                       <div style={{ marginTop: 10 }}>
                         <div className="label" style={{ marginBottom: 4 }}>When I’m here, it sounds like…</div>
                         <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
-                          {selectedState.expandedLines.map((line) => (
+                          {(selectedState?.expandedLines.length ? selectedState.expandedLines : ['—']).map((line) => (
                             <li key={line} style={{ marginBottom: 4 }}>{line}</li>
                           ))}
                         </ul>
                         <div className="small" style={{ marginTop: 8, color: 'hsl(var(--muted) / 0.75)' }}>
-                          Clinical correlate: {selectedState.clinicalLabel}
+                          Clinical correlate: {selectedState?.clinicalLabel ?? '—'}
                         </div>
                         <div className="small" style={{ color: 'hsl(var(--muted) / 0.75)' }}>
-                          Common pattern: {selectedState.commonPattern}
+                          Common pattern: {selectedState?.commonPattern ?? '—'}
                         </div>
+                        <div className="small" style={{ marginTop: 8, color: 'hsl(var(--muted) / 0.75)' }}>Stabilizers:</div>
+                        <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
+                          {(selectedState?.stabilizers.length ? selectedState.stabilizers : ['—']).map((line) => (
+                            <li key={line} style={{ marginBottom: 4 }}>{line}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </div>
