@@ -160,23 +160,22 @@ h3,
   text-decoration: underline;
 }
 
-.layoutShell { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
-.mainColumn { display: flex; flex-direction: column; gap: 12px; padding-right: 360px; }
-@media (max-width: 980px) { .mainColumn { padding-right: 0; } }
+.layoutShell { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+.mainColumn { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+@media (max-width: 980px) { .layoutShell { grid-template-columns: 1fr; } }
 
 .stickyRail {
-  position: fixed;
+  position: sticky;
   top: 76px;
-  right: 22px;
-  width: 340px;
+  width: 100%;
   max-height: calc(100vh - 96px);
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 @media (max-width: 980px) {
-  .stickyRail { position: static; width: auto; max-height: none; overflow: visible; }
+  .stickyRail { position: static; max-height: none; overflow: visible; }
 }
 
 .railCard, .stepCard { padding: 14px; }
@@ -342,37 +341,35 @@ h3,
 .footerNote { opacity: .85; margin-top: 14px; }
 
 .userCompassRoot {
-  position: relative;
-  z-index: 85;
+  width: 100%;
 }
 
 .userCompassTab {
-  position: fixed;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  display: inline-flex;
+  position: static;
+  width: 100%;
+  writing-mode: horizontal-tb;
+  text-orientation: initial;
+  display: flex;
+  justify-content: center;
   align-items: center;
   gap: 8px;
   border: 1px solid hsl(var(--border));
-  border-right: none;
-  border-radius: 12px 0 0 12px;
-  padding: 12px 8px;
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
   background: hsl(var(--surface));
   color: var(--text-strong);
-  font-size: 12px;
-  letter-spacing: .03em;
+  font-size: 13px;
+  letter-spacing: .01em;
   font-weight: 700;
-  box-shadow: 0 12px 24px -20px hsl(var(--shadow) / 0.5);
+  box-shadow: 0 10px 24px -20px hsl(var(--shadow) / 0.35);
   cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease;
+  transition: background 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
 }
 
 .userCompassTab:hover {
   background: hsl(var(--surface-2));
   border-color: hsl(var(--muted) / 0.4);
+  box-shadow: 0 12px 24px -20px hsl(var(--shadow) / 0.45);
 }
 
 .userCompassTab:focus-visible {

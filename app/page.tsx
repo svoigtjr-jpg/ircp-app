@@ -137,26 +137,8 @@ export default function Page() {
 
   return (
     <>
-      {cfg && (
-        <div className="northStarFixed" aria-label="North Star">
-          <div className="northStarIcon">✦</div>
-          <div className="northStarTip">
-            <div style={{ fontWeight: 900, marginBottom: 6 }}>North Star</div>
-            <div className="small" style={{ marginBottom: 8 }}>{cfg.northStar.blurb}</div>
-            <div className="col" style={{ gap: 8 }}>
-              {cfg.northStar.points.map((p, i) => (
-                <div key={i} className="small">
-                  <strong style={{ color: 'var(--text-strong)' }}>{p.label}:</strong> {p.text}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="container">
         <div className="headerWrap surface">
-          <UserCompass />
           <div className="headerContent">
             <div className="philosophy">Trauma-Informed by Default</div>
             <div className="brand">
@@ -245,12 +227,6 @@ export default function Page() {
                             <li key={line} style={{ marginBottom: 4 }}>{line}</li>
                           ))}
                         </ul>
-                        <div className="small" style={{ marginTop: 8, color: 'hsl(var(--muted) / 0.75)' }}>
-                          Clinical correlate: {selectedState?.clinicalLabel ?? '—'}
-                        </div>
-                        <div className="small" style={{ color: 'hsl(var(--muted) / 0.75)' }}>
-                          Common pattern: {selectedState?.commonPattern ?? '—'}
-                        </div>
                         <div className="small" style={{ marginTop: 8, color: 'hsl(var(--muted) / 0.75)' }}>Stabilizers:</div>
                         <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
                           {(selectedState?.stabilizers.length ? selectedState.stabilizers : ['—']).map((line) => (
@@ -289,7 +265,6 @@ export default function Page() {
                     </div>
                   ) : (
                     <div>
-                      <div className="label">Quick note (optional)</div>
                       <input className="input" placeholder="Leave blank" />
                     </div>
                   )}
@@ -461,6 +436,25 @@ export default function Page() {
 
             {/* Right toolbelt */}
             <div className="stickyRail">
+              <div className="card railCard" aria-label="North Star">
+                <div className="northStarIcon">✦</div>
+                <div>
+                  <div style={{ fontWeight: 900, marginBottom: 6 }}>North Star</div>
+                  <div className="small" style={{ marginBottom: 8 }}>{cfg.northStar.blurb}</div>
+                  <div className="col" style={{ gap: 8 }}>
+                    {cfg.northStar.points.map((p, i) => (
+                      <div key={i} className="small">
+                        <strong style={{ color: 'var(--text-strong)' }}>{p.label}:</strong> {p.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="card railCard compassCard">
+                <UserCompass />
+              </div>
+
               <div className="card railCard">
                 <div className="label">More emotions (checkboxes)</div>
                 <button className="drawerBtn" onClick={() => setShowMoreEmotions((s) => !s)}>
