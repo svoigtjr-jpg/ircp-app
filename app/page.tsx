@@ -3,8 +3,9 @@
 import { useMemo, useState } from 'react';
 import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
+import { IRCP_STATES, IRCP_STATES_BY_ID } from '../lib/ircpStates';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
-import { EMOTIONS, NEEDS, NS_STATES } from '../lib/vocab';
+import { EMOTIONS, NEEDS } from '../lib/vocab';
 
 type Entry = {
   id: string;
@@ -12,7 +13,8 @@ type Entry = {
   tab: TabKey;
 
   situation: string;
-  nsState: string;
+  nsStateId: string;
+  nsStateLabel: string;
 
   bodySignals: string;
   emotionsSelected: string[];
@@ -39,8 +41,8 @@ function toggle(arr: string[], v: string) {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
 
-function nsAccent(nsState: string) {
-  const s = (nsState || '').toLowerCase();
+function nsAccent(nsStateId: string) {
+  const s = (nsStateId || '').toLowerCase();
   if (s.includes('ventral')) return '#6e9f8f';
   if (s.includes('mobilized')) return '#c89a52';
   if (s.includes('shutdown')) return '#6f8195';
@@ -56,7 +58,8 @@ function makeEmptyEntry(tab: TabKey): Entry {
     createdAt: new Date().toISOString(),
     tab,
     situation: '',
-    nsState: '',
+    nsStateId: '',
+    nsStateLabel: '',
     bodySignals: '',
     emotionsSelected: [],
     emotionsOther: '',
@@ -84,7 +87,8 @@ export default function Page() {
     if (selectedTab) setEntry((e) => ({ ...e, tab: selectedTab }));
   }, [selectedTab]);
 
-  const accent = nsAccent(entry.nsState);
+  const accent = nsAccent(entry.nsStateId);
+  const selectedState = entry.nsStateId ? IRCP_STATES_BY_ID[entry.nsStateId] : null;
 
   function startTopic(t: TabKey) {
     setSelectedTab(t);
@@ -114,7 +118,7 @@ export default function Page() {
       tab: entry.tab,
       context: entry.situation,
       bodySignals: entry.bodySignals,
-      nsState: entry.nsState,
+      nsState: entry.nsStateLabel,
       emotionsSelected: entry.emotionsSelected,
       emotionsOther: entry.emotionsOther,
       needsSelected: entry.needsSelected,
@@ -215,13 +219,39 @@ export default function Page() {
                     <div className="label">Nervous system state</div>
                     <select
                       className="select"
-                      value={entry.nsState}
-                      onChange={(e) => setEntry((x) => ({ ...x, nsState: e.target.value }))}
-                      style={{ borderColor: entry.nsState ? accent : undefined }}
+                      value={entry.nsStateId}
+                      onChange={(e) => {
+                        const nextState = IRCP_STATES_BY_ID[e.target.value];
+                        setEntry((x) => ({
+                          ...x,
+                          nsStateId: e.target.value,
+                          nsStateLabel: nextState ? nextState.humanLabel : ''
+                        }));
+                      }}
+                      style={{ borderColor: entry.nsStateId ? accent : undefined }}
                     >
                       <option value="">Select...</option>
-                      {NS_STATES.map((s) => (<option key={s} value={s}>{s}</option>))}
+                      {IRCP_STATES.map((state) => (
+                        <option key={state.id} value={state.id}>{state.humanLabel}</option>
+                      ))}
                     </select>
+
+                    {selectedState && (
+                      <div style={{ marginTop: 10 }}>
+                        <div className="label" style={{ marginBottom: 4 }}>When I’m here, it sounds like…</div>
+                        <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
+                          {selectedState.expandedLines.map((line) => (
+                            <li key={line} style={{ marginBottom: 4 }}>{line}</li>
+                          ))}
+                        </ul>
+                        <div className="small" style={{ marginTop: 8, color: 'hsl(var(--muted) / 0.75)' }}>
+                          Clinical correlate: {selectedState.clinicalLabel}
+                        </div>
+                        <div className="small" style={{ color: 'hsl(var(--muted) / 0.75)' }}>
+                          Common pattern: {selectedState.commonPattern}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {selectedTab === 'record_win' ? (
@@ -415,7 +445,7 @@ export default function Page() {
                       <br />
                     </>
                   )}
-                  <strong>NS State:</strong> {entry.nsState || '—'}<br />
+                  <strong>NS State:</strong> {entry.nsStateLabel || '—'}<br />
                   <strong>Emotions:</strong> {entry.emotionsSelected.join(', ') || '—'}{entry.emotionsOther ? ` + ${entry.emotionsOther}` : ''}<br />
                   <strong>Needs:</strong> {entry.needsSelected.join(', ') || '—'}{entry.needsOther ? ` + ${entry.needsOther}` : ''}
                 </div>
