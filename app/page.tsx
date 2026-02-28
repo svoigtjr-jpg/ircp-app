@@ -827,21 +827,6 @@ export default function Page() {
                   </div>
                 </div>
 
-                <div style={{ marginBottom: 10 }}>
-                  <div className="label">Try one</div>
-                  <div className="small">No perfect choice. Pick one.</div>
-                  <div className="stepMiniCard">
-                    <ul className="tryOneList">
-                      {entry.tryOneSuggestions.map((item) => (
-                        <li key={item} className="tryOneItem">
-                          <span aria-hidden className="tryOneMarker">◻</span>
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
                 <div style={{ marginTop: 10 }}>
                   <div className="label">One next move (optional)</div>
                   <input
@@ -914,6 +899,18 @@ export default function Page() {
                     <div className="entrySummaryBlock">
                       <div className="label">Needs</div>
                       <div className="entrySummaryLine">{entry.needsSelected.join(' • ')}</div>
+                    </div>
+                  )}
+
+                  {entry.tryOneSuggestions.length > 0 && (
+                    <div className="entrySummaryBlock">
+                      <div className="label">Try one</div>
+                      <div className="small">Pick one small move.</div>
+                      <ul className="entrySummaryTryOneList">
+                        {entry.tryOneSuggestions.map((item) => (
+                          <li key={item} className="entrySummaryTryOneItem">{item}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
 
