@@ -1,5 +1,7 @@
 export type IrcpState = {
   id: string;
+  label: string;
+  symbol: string;
   humanLabel: string;
   expandedLines: string[];
   clinicalLabel: string;
@@ -15,6 +17,8 @@ export type IrcpState = {
 export const IRCP_STATES: IrcpState[] = [
   {
     id: 'ventral',
+    label: 'Ventral (Safe / Connected)',
+    symbol: '⊕',
     humanLabel: 'Free to Be Myself.',
     expandedLines: ['I belong here.', 'I’m not performing.', 'I don’t have to prove anything.'],
     clinicalLabel: 'Regulated state (ventral vagal engagement).',
@@ -29,6 +33,8 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'mobilized',
+    label: 'Fight / Flight',
+    symbol: '◉',
     humanLabel: 'Might punch you. Might disappear.',
     expandedLines: [
       'Say one more thing.',
@@ -48,6 +54,8 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'shutdown_light',
+    label: 'Regulated Mobilization',
+    symbol: '⊜',
     humanLabel: 'Meh.',
     expandedLines: [
       'Nothing feels urgent.',
@@ -67,6 +75,8 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'fawn',
+    label: 'Internalized Fight / Flight',
+    symbol: '◉⇠',
     humanLabel: 'I’ll adjust. Again.',
     expandedLines: ['I’ll do it to keep the peace.', 'I want to say no.', 'Shrinking feels easier.'],
     clinicalLabel: 'Appeasement / fawn response (social survival strategy).',
@@ -81,6 +91,8 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'overstim',
+    label: 'Dysregulated Mobilization',
+    symbol: '⊝',
     humanLabel: 'LOUD NOISES!',
     expandedLines: [
       'One more noise and I combust.',
@@ -100,6 +112,8 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'shutdown_deep',
+    label: 'Shutdown / Collapse',
+    symbol: '●',
     humanLabel: 'Sleep. Avoid. Repeat.',
     expandedLines: ['Bare minimum mode.', 'I’ll deal with it later.', 'I don’t have the energy.', 'I’m not really here.'],
     clinicalLabel: 'Low-energy withdrawal pattern (dorsal vagal dominance).',
@@ -119,11 +133,17 @@ const LEGACY_STATE_ID_MAP: Record<string, string> = {
 
 const LEGACY_STATE_LABEL_MAP: Record<string, string> = {
   'free to be myself.': 'ventral',
+  'ventral (safe / connected)': 'ventral',
   'might punch you. might disappear.': 'mobilized',
+  'fight / flight': 'mobilized',
   'meh.': 'shutdown_light',
+  'regulated mobilization': 'shutdown_light',
   'i’ll adjust. again.': 'fawn',
+  'internalized fight / flight': 'fawn',
   'loud noises!': 'overstim',
-  'sleep. avoid. repeat.': 'shutdown_deep'
+  'dysregulated mobilization': 'overstim',
+  'sleep. avoid. repeat.': 'shutdown_deep',
+  'shutdown / collapse': 'shutdown_deep'
 };
 
 function normalizeKey(v: string) {
@@ -144,4 +164,13 @@ export function resolveIrcpState(stateId?: string | null, stateLabel?: string | 
   }
 
   return null;
+}
+
+export function getStateDisplay(state?: IrcpState | null): string {
+  if (!state) return '';
+  return `${state.symbol} ${state.label}`;
+}
+
+export function getStateSymbol(stateId?: string | null, stateLabel?: string | null): string {
+  return resolveIrcpState(stateId, stateLabel)?.symbol ?? '';
 }
