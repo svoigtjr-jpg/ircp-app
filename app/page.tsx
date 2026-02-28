@@ -7,7 +7,7 @@ import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
 import { ANCHOR_PILLS, ANCHOR_PILLS_BY_ID } from '../lib/anchorPills';
 import { ALL_CATEGORY_EMOTIONS, CATEGORY_EMOTION_PULLS } from '../lib/categoryPills';
-import { getPrimarySymbol, getTryOneSuggestions } from '../lib/suggestions';
+import { getPrimarySymbol, getTryOneSuggestions, PRIMARY_SYMBOL_PRIORITY } from '../lib/suggestions';
 
 type Entry = {
   id: string;
@@ -56,24 +56,87 @@ function toCommaSeparatedList(items: string[]) {
   return items.join(', ');
 }
 
-const BODY_SIGNAL_PILLS = [
-  'Jaw tight',
-  'Chest heavy',
-  'Shallow breath',
-  'Lump in throat',
-  'Stomach tight',
-  'Heart racing',
-  'Shoulders up',
-  'Buzzing energy',
-  'Shaky',
-  'Restless legs',
-  'Head pressure',
-  'Numb/floaty',
-  'Warm face',
-  'Cold hands'
-];
+const BODY_SIGNALS_BY_STATE: Record<string, string[]> = {
+  ventral: [
+    'Steady breath',
+    'Deep inhale',
+    'Relaxed jaw',
+    'Shoulders down',
+    'Open chest',
+    'Warm face',
+    'Soft eyes',
+    'Steady heartbeat',
+    'Clear head',
+    'Light in my body',
+    'Calm energy',
+    'Natural posture',
+    'Comfortable in my skin',
+    'Present',
+    'Connected'
+  ],
+  balanced_activation: [
+    'Faster heartbeat (controlled)',
+    'Warm chest',
+    'Alert senses',
+    'Slight muscle tension',
+    'Focused eyes',
+    'Intentional movement',
+    'Heightened awareness',
+    'Controlled intensity',
+    'Ready',
+    'Engaged but steady'
+  ],
+  mobilized: [
+    'Racing heart',
+    'Tight chest',
+    'Shallow breathing',
+    'Clenched jaw',
+    'Restless legs',
+    'Heat in face',
+    'Muscle tension',
+    'Urge to move',
+    'On edge',
+    'Agitated energy'
+  ],
+  internalized_stress: [
+    'Knot in stomach',
+    'Heavy chest',
+    'Holding breath',
+    'Shrinking posture',
+    'Tight throat',
+    'Avoiding eye contact',
+    'Self-criticism tension',
+    'Frozen smile',
+    'Internal pressure'
+  ],
+  shutdown: [
+    'Low energy',
+    'Heavy limbs',
+    'Slumped posture',
+    'Foggy head',
+    'Slow breathing',
+    'Numb body',
+    'Cold hands',
+    'Blank stare',
+    'Desire to withdraw',
+    'Minimal movement'
+  ]
+};
 
-const BODY_SIGNAL_SET = new Set(BODY_SIGNAL_PILLS.map((item) => item.toLowerCase()));
+function getBodySignalGroup(tab: TabKey, selectedSymbols: string[]) {
+  if (tab === 'record_win' || selectedSymbols.includes('⊕')) return 'ventral';
+
+  for (const symbol of PRIMARY_SYMBOL_PRIORITY) {
+    if (!selectedSymbols.includes(symbol)) continue;
+    if (symbol === '⊜') return 'balanced_activation';
+    if (symbol === '◉') return 'mobilized';
+    if (symbol === '◉⇠') return 'internalized_stress';
+    if (symbol === '●') return 'shutdown';
+  }
+
+  return 'balanced_activation';
+}
+
 const EMOTION_SET = new Set(ALL_CATEGORY_EMOTIONS.map((item) => item.toLowerCase()));
 
 const BODY_SIGNAL_BUCKETS: Array<{ label: string; keywords: string[] }> = [
@@ -185,7 +248,26 @@ export default function Page() {
     .map((id) => ANCHOR_PILLS_BY_ID[id])
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
-  const primaryPatternSymbols = selectedAnchorItems.map((item) => item.symbol).join(' + ') || '—';
+  const selectedSymbols = selectedAnchorItems.map((item) => item.symbol);
+  const activeBodySignalGroup = getBodySignalGroup(entry.tab, selectedSymbols);
+  const bodySignalPills = BODY_SIGNALS_BY_STATE[activeBodySignalGroup] ?? [];
+  const bodySignalSet = useMemo(() => new Set(bodySignalPills.map((item) => item.toLowerCase())), [bodySignalPills]);
+
+  const primaryPatternSymbols = selectedSymbols.join(' + ') || '—';
+
+  useEffect(() => {
+    setEntry((current) => {
+      const filteredBodySignals = current.bodySignalsSelected.filter((signal) => bodySignalSet.has(signal.toLowerCase()));
+      if (filteredBodySignals.length === current.bodySignalsSelected.length) return current;
+
+      return {
+        ...current,
+        bodySignalsSelected: filteredBodySignals,
+        bodySignalsCustom: '',
+        bodySignals: toCommaSeparatedList(filteredBodySignals)
+      };
+    });
+  }, [bodySignalSet]);
 
   const bodySignalSummary = useMemo(() => {
     const selected = entry.bodySignalsSelected;
@@ -273,10 +355,6 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    const selectedSymbols = entry.anchorStateIds
-      .map((id) => ANCHOR_PILLS_BY_ID[id]?.symbol)
-      .filter((symbol): symbol is string => Boolean(symbol));
-
     const primarySymbol = getPrimarySymbol(selectedSymbols);
     const rotationSeed =
       Math.abs(
@@ -305,7 +383,7 @@ export default function Page() {
     }));
 
     window.localStorage.setItem('ircp:last-try-one-hash', hash);
-  }, [entry.anchorStateIds, entry.bodySignalsSelected.length, entry.createdAt, entry.emotionsSelected.length, entry.tab]);
+  }, [entry.anchorStateIds, entry.bodySignalsSelected.length, entry.createdAt, entry.emotionsSelected.length, entry.tab, selectedSymbols]);
 
   function toggleAnchorSelection(id: string) {
     setEntry((x) => {
@@ -372,7 +450,7 @@ export default function Page() {
     setEntry((x) => {
       const bodySignalsSelected = toggle(x.bodySignalsSelected, value);
       const bodySignalsCustom = toCommaSeparatedList(
-        bodySignalsSelected.filter((item) => !BODY_SIGNAL_SET.has(item.toLowerCase()))
+        bodySignalsSelected.filter((item) => !bodySignalSet.has(item.toLowerCase()))
       );
       return {
         ...x,
@@ -392,7 +470,7 @@ export default function Page() {
 
       const bodySignalsSelected = [...x.bodySignalsSelected, value];
       const bodySignalsCustom = toCommaSeparatedList(
-        bodySignalsSelected.filter((item) => !BODY_SIGNAL_SET.has(item.toLowerCase()))
+        bodySignalsSelected.filter((item) => !bodySignalSet.has(item.toLowerCase()))
       );
 
       return {
@@ -622,8 +700,9 @@ export default function Page() {
 
                 <div>
                   <div className="label">Body signals (tap what’s true)</div>
+                  <div className="small" style={{ marginBottom: 8 }}>Options are filtered to match your selected symbol/state.</div>
                   <div className="pillRow" style={{ marginBottom: 8 }}>
-                    {BODY_SIGNAL_PILLS.map((signal) => {
+                    {bodySignalPills.map((signal) => {
                       const active = entry.bodySignalsSelected.includes(signal);
                       return (
                         <button
@@ -637,7 +716,7 @@ export default function Page() {
                       );
                     })}
                     {entry.bodySignalsSelected
-                      .filter((signal) => !BODY_SIGNAL_SET.has(signal.toLowerCase()))
+                      .filter((signal) => !bodySignalSet.has(signal.toLowerCase()))
                       .map((signal) => (
                         <button
                           key={signal}
