@@ -641,3 +641,53 @@ h3,
   border-radius: 10px;
   padding: 8px 10px;
 }
+
+.stepMiniCard {
+  margin-top: 6px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  background: hsl(var(--surface-2));
+  padding: 10px;
+}
+
+.snapshotRows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.snapshotRow {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.snapshotLabel {
+  color: hsl(var(--muted));
+  font-size: 12px;
+}
+
+.tryOneList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tryOneItem {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.tryOneMarker {
+  color: hsl(var(--muted));
+  font-size: 12px;
+  transform: translateY(1px);
+}

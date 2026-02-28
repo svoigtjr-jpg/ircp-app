@@ -19,11 +19,12 @@ export type PdfEntry = {
   emotionsOther: string;
 
   needsSelected: string[];
-  needsOther: string;
-
-  story: string;
-  meaning: string;
-  nextRightStep: string;
+  snapshotTopic: string;
+  snapshotSymbols: string;
+  snapshotBodySignals: string[];
+  snapshotEmotions: string[];
+  tryOneSuggestions: string[];
+  nextMoveText: string;
   winOrReframe: string;
 
   experienceType?: string;
@@ -130,8 +131,7 @@ export async function exportEntryToPdf(entry: PdfEntry, cfg: PdfTabConfig) {
   ].join("");
 
   const needText = [
-    needList.length ? `• ${needList.join("\n• ")}` : "—",
-    (entry.needsOther || "").trim() ? `\nOther: ${(entry.needsOther || "").trim()}` : ""
+    needList.length ? `• ${needList.join("\n• ")}` : "—"
   ].join("");
 
   writeHeader("Emotions Identified");
@@ -142,9 +142,23 @@ export async function exportEntryToPdf(entry: PdfEntry, cfg: PdfTabConfig) {
   writeParagraph(needText, 11);
   y += 3;
 
-  writeSection("Process — What happened", entry.story);
-  writeSection("Meaning", entry.meaning);
-  writeSection("Next Right Step", entry.nextRightStep);
+  writeHeader("Meaning → Next Move");
+
+  const snapshotRows = [
+    entry.snapshotTopic ? `Topic: ${entry.snapshotTopic}` : '',
+    entry.snapshotSymbols ? `Symbols: ${entry.snapshotSymbols}` : '',
+    entry.snapshotBodySignals.length ? `Body signals: ${entry.snapshotBodySignals.join(', ')}` : '',
+    entry.snapshotEmotions.length ? `Emotions: ${entry.snapshotEmotions.join(', ')}` : ''
+  ].filter(Boolean);
+
+  writeParagraph(snapshotRows.length ? snapshotRows.map((row) => `• ${row}`).join('\n') : '—', 11);
+  y += 3;
+
+  writeHeader("Try One");
+  writeParagraph(entry.tryOneSuggestions.length ? `• ${entry.tryOneSuggestions.join('\n• ')}` : '—', 11);
+  y += 3;
+
+  writeSection("One Next Move", entry.nextMoveText);
   writeSection("Lock It In", entry.winOrReframe);
 
   // North Star
