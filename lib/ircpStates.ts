@@ -17,12 +17,12 @@ export type IrcpState = {
 export const IRCP_STATES: IrcpState[] = [
   {
     id: 'ventral',
-    label: 'Ventral (Safe / Connected)',
+    label: 'Connected. Centered. Flexible.',
     symbol: '⊕',
     humanLabel: 'Free to Be Myself.',
     expandedLines: ['I belong here.', 'I’m not performing.', 'I don’t have to prove anything.'],
     clinicalLabel: 'Regulated state (ventral vagal engagement).',
-    commonPattern: 'Steady heart rate, clear thinking, relaxed body, social ease.',
+    commonPattern: 'Energy is steady. You feel present, clear, and able to respond without bracing.',
     stabilizers: [
       'Notice that you feel steady right now.',
       'Celebrate something specific you handled well.',
@@ -33,7 +33,7 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'mobilized',
-    label: 'Fight / Flight',
+    label: 'Reacting instead of responding.',
     symbol: '◉',
     humanLabel: 'Might punch you. Might disappear.',
     expandedLines: [
@@ -43,7 +43,7 @@ export const IRCP_STATES: IrcpState[] = [
       'I’m either exploding or leaving.'
     ],
     clinicalLabel: 'Heightened sympathetic activation (fight-or-flight).',
-    commonPattern: 'Elevated heart rate, muscle tension, urgency in thoughts, narrowed focus.',
+    commonPattern: 'Irritability rises. Your tone changes. Your body shifts. Stress starts running the show.',
     stabilizers: [
       'Do not respond yet.',
       'Move your body for 3 minutes.',
@@ -54,7 +54,7 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'shutdown_light',
-    label: 'Balanced Activation',
+    label: 'Fired up. Not flooded.',
     symbol: '⊜',
     humanLabel: 'Meh.',
     expandedLines: [
@@ -64,7 +64,7 @@ export const IRCP_STATES: IrcpState[] = [
       'I don’t feel pulled toward anything.'
     ],
     clinicalLabel: 'Low activation / blunted engagement (mild dorsal shift).',
-    commonPattern: 'Reduced energy, muted emotion, decreased initiative, passive participation.',
+    commonPattern: 'You can handle daily stress without losing connection.',
     stabilizers: [
       'Stand up. That’s enough.',
       'Drink a glass of water.',
@@ -75,12 +75,12 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'fawn',
-    label: 'Holding it in.',
+    label: 'It must be me.',
     symbol: '◯',
     humanLabel: 'I’ll adjust. Again.',
     expandedLines: ['I’ll do it to keep the peace.', 'I want to say no.', 'Shrinking feels easier.'],
     clinicalLabel: 'Internalized stress response (protective suppression pattern).',
-    commonPattern: 'Internal pressure builds while expression stays constrained and boundaries thin to preserve safety.',
+    commonPattern: 'The body goes quiet. The mind starts replaying. You take responsibility for things that may not belong to you.',
     stabilizers: [
       'Don’t answer immediately.',
       'Say, “Let me think about that.”',
@@ -112,12 +112,12 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'shutdown_deep',
-    label: 'Shutdown / Collapse',
+    label: 'Nothing left.',
     symbol: '●',
     humanLabel: 'Sleep. Avoid. Repeat.',
     expandedLines: ['Bare minimum mode.', 'I’ll deal with it later.', 'I don’t have the energy.', 'I’m not really here.'],
     clinicalLabel: 'Low-energy withdrawal pattern (dorsal vagal dominance).',
-    commonPattern: 'Brain fog, physical heaviness, social withdrawal, reduced responsiveness.',
+    commonPattern: 'You withdraw, conserve, and reduce interaction to the bare minimum.',
     stabilizers: ['Stay where you feel safe.', 'Prioritize rest and recovery.', 'Eat something simple.', 'Connect with nature or pets.'],
     metrics: { activation: 1, connection: 1, pli: 6 }
   }
@@ -132,22 +132,17 @@ const LEGACY_STATE_ID_MAP: Record<string, string> = {
 };
 
 const LEGACY_STATE_LABEL_MAP: Record<string, string> = {
+  'connected. centered. flexible.': 'ventral',
+  'fired up. not flooded.': 'shutdown_light',
+  'reacting instead of responding.': 'mobilized',
+  'it must be me.': 'fawn',
+  'nothing left.': 'shutdown_deep',
   'free to be myself.': 'ventral',
-  'ventral (safe / connected)': 'ventral',
   'might punch you. might disappear.': 'mobilized',
-  'fight / flight': 'mobilized',
   'meh.': 'shutdown_light',
-  'regulated mobilization': 'shutdown_light',
-  'balanced activation': 'shutdown_light',
   'you can handle daily stress without losing connection.': 'shutdown_light',
-  'i’ll adjust. again.': 'fawn',
-  'internalized fight / flight': 'fawn',
-  'holding it in.': 'fawn',
   'loud noises!': 'overstim',
-  'dysregulated mobilization': 'overstim',
-  'at the tipping point.': 'overstim',
-  'sleep. avoid. repeat.': 'shutdown_deep',
-  'shutdown / collapse': 'shutdown_deep'
+  'at the tipping point.': 'overstim'
 };
 
 function normalizeKey(v: string) {

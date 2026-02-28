@@ -1,8 +1,8 @@
 export type AnchorPill = {
   id: string;
   symbol: string;
-  label: string;
-  microDescription: string;
+  title: string;
+  description: string;
   toneColor: string;
 };
 
@@ -10,43 +10,43 @@ export const ANCHOR_PILLS: AnchorPill[] = [
   {
     id: 'connected_centered_flexible',
     symbol: '⊕',
-    label: 'Connected. Centered. Flexible.',
-    microDescription: 'You feel steady, present, and able to respond instead of react.',
+    title: 'Connected. Centered. Flexible.',
+    description: 'Energy is steady. You feel present, clear, and able to respond without bracing.',
     toneColor: '#5f7f84'
   },
   {
     id: 'energized_but_steady',
     symbol: '⊜',
-    label: 'You can handle daily stress without losing connection.',
-    microDescription: 'You can handle daily stress without losing connection.',
+    title: 'Fired up. Not flooded.',
+    description: 'You can handle daily stress without losing connection.',
     toneColor: '#7a7163'
   },
   {
     id: 'something_feels_off',
     symbol: '◑',
-    label: 'At the tipping point.',
-    microDescription: 'Something doesn’t feel safe. Grounded thinking is slipping as protection prepares to take over.',
+    title: 'At the tipping point.',
+    description: 'Something doesn’t feel safe. Grounded thinking is slipping as protection prepares to take over.',
     toneColor: '#6d7286'
   },
   {
     id: 'stress_is_running_this',
     symbol: '◉',
-    label: 'Stress is running this.',
-    microDescription: 'Your body is in protection mode and reacting quickly.',
+    title: 'Reacting instead of responding.',
+    description: 'Irritability rises. Your tone changes. Your body shifts. Stress starts running the show.',
     toneColor: '#7b6f7f'
   },
   {
     id: 'shrinking_to_keep_calm',
     symbol: '◯',
-    label: 'Holding it in.',
-    microDescription: 'Pressure stays trapped inside while your boundaries thin to keep the surface calm.',
+    title: 'It must be me.',
+    description: 'The body goes quiet. The mind starts replaying. You take responsibility for things that may not belong to you.',
     toneColor: '#6d7c72'
   },
   {
     id: 'shutting_down',
     symbol: '●',
-    label: 'I’m shutting down.',
-    microDescription: 'Your system is conserving energy and pulling inward.',
+    title: 'Nothing left.',
+    description: 'You withdraw, conserve, and reduce interaction to the bare minimum.',
     toneColor: '#766f67'
   }
 ];
