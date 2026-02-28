@@ -196,6 +196,76 @@ h3,
 .railCard, .stepCard { padding: 12px; }
 .railCard { border-radius: var(--radius-lg); }
 
+.entrySummaryCard {
+  background: hsl(var(--surface-2));
+  box-shadow: 0 14px 34px -26px hsl(var(--shadow) / 0.5);
+}
+
+.entrySummaryHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.entrySummaryTitle {
+  font-size: 0.98rem;
+  color: var(--text-strong);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.entrySummaryToggle {
+  display: none;
+  padding: 6px 9px;
+  font-size: 12px;
+}
+
+.entrySummaryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.entrySummaryBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.entrySummaryList {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.entrySummaryLine {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.entrySummaryCopyBtn {
+  align-self: flex-start;
+  padding: 7px 10px;
+}
+
+@media (max-width: 980px) {
+  .entrySummaryToggle {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .entrySummaryContent {
+    display: none;
+  }
+
+  .entrySummaryContent.entrySummaryContentOpen {
+    display: flex;
+  }
+}
+
 .stepHeader { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
 .stepNum {
   min-width: 0;

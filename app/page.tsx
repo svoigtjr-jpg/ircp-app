@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
@@ -77,6 +76,25 @@ const BODY_SIGNAL_PILLS = [
 const BODY_SIGNAL_SET = new Set(BODY_SIGNAL_PILLS.map((item) => item.toLowerCase()));
 const EMOTION_SET = new Set(ALL_CATEGORY_EMOTIONS.map((item) => item.toLowerCase()));
 
+const BODY_SIGNAL_BUCKETS: Array<{ label: string; keywords: string[] }> = [
+  { label: 'Jaw/Face', keywords: ['jaw', 'face', 'throat'] },
+  { label: 'Chest/Heart', keywords: ['chest', 'heart'] },
+  { label: 'Breath', keywords: ['breath', 'breathing'] },
+  { label: 'Gut', keywords: ['stomach', 'gut', 'nausea', 'belly'] },
+  { label: 'Muscles', keywords: ['shoulder', 'shaky', 'restless', 'tense', 'muscle'] },
+  { label: 'Head', keywords: ['head', 'pressure', 'dizzy', 'fog'] },
+  { label: 'Energy', keywords: ['energy', 'numb', 'floaty', 'cold', 'warm', 'buzz'] }
+];
+
+const EMOTION_CLUSTERS: Array<{ label: string; keywords: string[] }> = [
+  { label: 'Threat/Alarm', keywords: ['anxious', 'overwhelmed', 'panicked', 'fearful'] },
+  { label: 'Anger/Boundary', keywords: ['angry', 'defensive', 'irritated'] },
+  { label: 'Shame/Self-attack', keywords: ['ashamed', 'embarrassed'] },
+  { label: 'Grief/Low mood', keywords: ['sad', 'hopeless'] },
+  { label: 'Numb/Disconnected', keywords: ['numb', 'detached'] },
+  { label: 'Relief/Connection', keywords: ['calm', 'grateful', 'clear'] }
+];
+
 function makeEmptyEntry(tab: TabKey): Entry {
   return {
     id: uid(),
@@ -114,6 +132,7 @@ export default function Page() {
   const [showEmotionAdd, setShowEmotionAdd] = useState(false);
   const [bodySignalDraft, setBodySignalDraft] = useState('');
   const [emotionDraft, setEmotionDraft] = useState('');
+  const [showSummaryRailContent, setShowSummaryRailContent] = useState(false);
   const [anchorSelectionMessage, setAnchorSelectionMessage] = useState('');
   const [needsSelectionMessage, setNeedsSelectionMessage] = useState('');
   const anchorSelectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -165,6 +184,82 @@ export default function Page() {
   const selectedAnchorItems = entry.anchorStateIds
     .map((id) => ANCHOR_PILLS_BY_ID[id])
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+  const primaryPatternSymbols = selectedAnchorItems.map((item) => item.symbol).join(' + ') || '—';
+
+  const bodySignalSummary = useMemo(() => {
+    const selected = entry.bodySignalsSelected;
+    if (selected.length === 0) return { lines: [] as string[], topBucket: '' };
+
+    const matchedByBucket = BODY_SIGNAL_BUCKETS.map((bucket) => {
+      const matches = selected.filter((signal) => {
+        const lower = signal.toLowerCase();
+        return bucket.keywords.some((keyword) => lower.includes(keyword));
+      });
+      return { label: bucket.label, matches };
+    }).filter((bucket) => bucket.matches.length > 0);
+
+    const matchedSignals = new Set(matchedByBucket.flatMap((bucket) => bucket.matches));
+    const leftovers = selected.filter((signal) => !matchedSignals.has(signal));
+    const lines = matchedByBucket.slice(0, 6).map((bucket) => `${bucket.label}: ${bucket.matches.join(', ')}`);
+
+    if (leftovers.length > 0 || matchedByBucket.length === 0) {
+      lines.push(`As entered: ${leftovers.length > 0 ? leftovers.join(', ') : selected.join(', ')}`);
+    }
+
+    return {
+      lines,
+      topBucket: matchedByBucket[0]?.label || (selected[0] ? `"${selected[0]}"` : '')
+    };
+  }, [entry.bodySignalsSelected]);
+
+  const emotionSummary = useMemo(() => {
+    const selected = entry.emotionsSelected;
+    if (selected.length === 0) return { lines: [] as string[], topCluster: '' };
+
+    const grouped = EMOTION_CLUSTERS.map((cluster) => {
+      const matches = selected.filter((emotion) => {
+        const lower = emotion.toLowerCase();
+        return cluster.keywords.some((keyword) => lower.includes(keyword));
+      });
+      return { label: cluster.label, matches };
+    }).filter((cluster) => cluster.matches.length > 0);
+
+    const lines = grouped.map((cluster) => `${cluster.label}: ${cluster.matches.join(', ')}`);
+    return {
+      lines,
+      topCluster: grouped[0]?.label || ''
+    };
+  }, [entry.emotionsSelected]);
+
+  const entrySummarySentence = useMemo(() => {
+    if (!cfg) return '';
+
+    const parts = [`During ${cfg.label}, my system showed ${primaryPatternSymbols}`];
+    if (bodySignalSummary.topBucket) {
+      parts.push(`with ${bodySignalSummary.topBucket}`);
+    }
+    if (emotionSummary.topCluster) {
+      parts.push(`and ${emotionSummary.topCluster}`);
+    }
+    let sentence = parts.join(' ');
+    if (entry.needsSelected.length > 0) {
+      sentence += `. I needed ${entry.needsSelected.join(', ')}`;
+    }
+    return `${sentence}.`;
+  }, [bodySignalSummary.topBucket, cfg, emotionSummary.topCluster, entry.needsSelected, primaryPatternSymbols]);
+
+  async function copyEntrySummary() {
+    const lines = [
+      `Primary pattern today: ${primaryPatternSymbols}`,
+      bodySignalSummary.lines.length > 0 ? `Body signals:\n- ${bodySignalSummary.lines.join('\n- ')}` : '',
+      emotionSummary.lines.length > 0 ? `Emotional signals:\n- ${emotionSummary.lines.join('\n- ')}` : '',
+      entry.needsSelected.length > 0 ? `Needs: ${entry.needsSelected.join(' • ')}` : '',
+      entrySummarySentence ? `Summary: ${entrySummarySentence}` : ''
+    ].filter(Boolean);
+
+    await navigator.clipboard.writeText(lines.join('\n\n'));
+  }
 
   useEffect(() => {
     return () => {
@@ -777,8 +872,58 @@ export default function Page() {
 
             {/* Right toolbelt */}
             <div className="stickyRail">
-              <div className="card railCard compassCard">
-                <UserCompass northStar={cfg.northStar} />
+              <div className="card railCard entrySummaryCard">
+                <div className="entrySummaryHeaderRow">
+                  <div>
+                    <div className="entrySummaryTitle">Entry Summary</div>
+                    <div className="small">A clean snapshot of what you captured.</div>
+                  </div>
+                  <button className="btn entrySummaryToggle" onClick={() => setShowSummaryRailContent((s) => !s)}>
+                    {showSummaryRailContent ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                <div className={`entrySummaryContent ${showSummaryRailContent ? 'entrySummaryContentOpen' : ''}`}>
+                  <div className="entrySummaryBlock">
+                    <div className="entrySummaryLine">Primary pattern today: {primaryPatternSymbols}</div>
+                  </div>
+
+                  {bodySignalSummary.lines.length > 0 && (
+                    <div className="entrySummaryBlock">
+                      <div className="label">Body signals</div>
+                      <div className="entrySummaryList">
+                        {bodySignalSummary.lines.map((line) => (
+                          <div key={line} className="entrySummaryLine">{line}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {emotionSummary.lines.length > 0 && (
+                    <div className="entrySummaryBlock">
+                      <div className="label">Emotional signals</div>
+                      <div className="entrySummaryList">
+                        {emotionSummary.lines.map((line) => (
+                          <div key={line} className="entrySummaryLine">{line}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {entry.needsSelected.length > 0 && (
+                    <div className="entrySummaryBlock">
+                      <div className="label">Needs</div>
+                      <div className="entrySummaryLine">{entry.needsSelected.join(' • ')}</div>
+                    </div>
+                  )}
+
+                  <div className="entrySummaryBlock">
+                    <div className="label">Summary</div>
+                    <div className="entrySummaryLine">{entrySummarySentence}</div>
+                  </div>
+
+                  <button type="button" className="btn entrySummaryCopyBtn" onClick={copyEntrySummary}>Copy summary</button>
+                </div>
               </div>
 
               <div className="card railCard">
