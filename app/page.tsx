@@ -123,8 +123,6 @@ export default function Page() {
     if (selectedTab) setEntry((e) => ({ ...e, tab: selectedTab }));
   }, [selectedTab]);
 
-  const firstSelectedAnchor = entry.anchorStateIds[0] ? ANCHOR_PILLS_BY_ID[entry.anchorStateIds[0]] : null;
-  const accent = firstSelectedAnchor?.toneColor ?? '#cdbfae';
   const emotionPulls = CATEGORY_EMOTION_PULLS[entry.tab];
 
   function startTopic(t: TabKey) {
@@ -399,7 +397,7 @@ export default function Page() {
             </div>
             {!cfg && (
               <div className="heroInstruction">
-                Start Below: Choose one topic. The guided questions appear after you choose.
+                Choose one topic below. The guided questions appear after you choose.
               </div>
             )}
           </div>
@@ -430,7 +428,7 @@ export default function Page() {
         ) : (
           <div className="layoutShell">
             <div className="mainColumn">
-              <div className="card2 stepCard accentStripe" style={{ borderLeftColor: accent }}>
+              <div className="card2 stepCard flowSection flowSectionOne">
                 <div style={{ marginBottom: 12 }}>
                   <div className="stepTitle">{cfg.label}</div>
                   <div className="sub">{cfg.tagline}</div>
@@ -462,7 +460,6 @@ export default function Page() {
                                 <span className="anchorSymbol" style={{ color: pill.toneColor }} aria-hidden>{pill.symbol}</span>
                                 <span>{pill.label}</span>
                               </span>
-                              <span className={`anchorCheck ${selected ? 'anchorCheckVisible' : ''}`} aria-hidden>✓</span>
                             </button>
 
                             <div className="anchorMicroDescription">{pill.microDescription}</div>
@@ -518,7 +515,7 @@ export default function Page() {
               </div>
 
               {/* Step 2 */}
-              <div className="card2 stepCard">
+              <div className="card2 stepCard flowSection flowSectionTwo">
                 <div className="stepHeader">
                   <div className="stepNum">2</div>
                   <div>
@@ -541,7 +538,6 @@ export default function Page() {
                           onClick={() => toggleBodySignalPill(signal)}
                         >
                           {signal}
-                          <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
                         </button>
                       );
                     })}
@@ -555,7 +551,6 @@ export default function Page() {
                           onClick={() => toggleBodySignalPill(signal)}
                         >
                           {signal}
-                          <span className="pillCheck pillCheckVisible">✓</span>
                         </button>
                       ))}
                   </div>
@@ -602,7 +597,6 @@ export default function Page() {
                           onClick={() => toggleEmotion(p)}
                         >
                           {p}
-                          <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
                         </button>
                       );
                     })}
@@ -624,11 +618,10 @@ export default function Page() {
                               className={`pill ${active ? 'pillEmotionActive' : ''}`}
                               onClick={() => toggleEmotion(p)}
                             >
-                              {p}
-                              <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
-                            </button>
-                          );
-                        })}
+                            {p}
+                          </button>
+                        );
+                      })}
                       </div>
                     </div>
                   )}
@@ -645,7 +638,6 @@ export default function Page() {
                             onClick={() => toggleEmotion(emotion)}
                           >
                             {emotion}
-                            <span className="pillCheck pillCheckVisible">✓</span>
                           </button>
                         ))}
                     </div>
@@ -734,7 +726,6 @@ export default function Page() {
                           onClick={() => toggleNeedSelection(p)}
                         >
                           {p}
-                          <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
                         </button>
                       );
                     })}
