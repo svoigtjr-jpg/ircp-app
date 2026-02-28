@@ -7,6 +7,7 @@ type CompassContentProps = {
     blurb: string;
     points: NorthStarPoint[];
   };
+  compact?: boolean;
 };
 
 const FLOW_STEPS = [
@@ -48,26 +49,14 @@ const WHEN_NOT_TO_USE = [
   'If reflection increases distress, pause and seek trusted live support.'
 ];
 
-export default function CompassContent({ northStar }: CompassContentProps) {
+export default function CompassContent({ northStar, compact = false }: CompassContentProps) {
   return (
     <article className="compass-print" aria-label="User Compass reference">
       <header className="compassSection">
         <h2 className="compassTitle">User Compass</h2>
         <p className="compassSubtitle">Structure for reflection. Not instruction.</p>
-      </header>
-
-      <div className="compassPrintColumns">
-        <section className="compassSection compassBreakAfter">
-          <h3>What IRCP Is</h3>
-          <ul>
-            <li>A guided reflection framework for nervous-system-aware journaling.</li>
-            <li>A way to slow down, name experience, and restore clarity.</li>
-            <li>A practical bridge from reaction to aligned action.</li>
-          </ul>
-        </section>
-
-        <section className="compassSection compassBreakAfter">
-          <h3>Topic North Star</h3>
+        <div className="compassNorthStarInline">
+          <h3>North Star</h3>
           <p className="compassSubtitle" style={{ marginTop: 0 }}>{northStar.blurb}</p>
           <ul>
             {northStar.points.map((point) => (
@@ -75,6 +64,17 @@ export default function CompassContent({ northStar }: CompassContentProps) {
                 <strong>{point.label}:</strong> {point.text}
               </li>
             ))}
+          </ul>
+        </div>
+      </header>
+
+      <div className={`compassPrintColumns ${compact ? 'compassPrintColumnsCompact' : ''}`}>
+        <section className="compassSection compassBreakAfter">
+          <h3>What IRCP Is</h3>
+          <ul>
+            <li>A guided reflection framework for nervous-system-aware journaling.</li>
+            <li>A way to slow down, name experience, and restore clarity.</li>
+            <li>A practical bridge from reaction to aligned action.</li>
           </ul>
         </section>
 
