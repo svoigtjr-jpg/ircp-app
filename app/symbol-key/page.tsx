@@ -3,7 +3,7 @@ import Link from 'next/link';
 const SYMBOL_KEY = [
   {
     symbol: '⊕',
-    label: 'Ventral (Safe / Connected)',
+    label: 'Connected. Centered. Flexible.',
     definition: 'Stable regulation with connection and flexible engagement.',
     behaviors: [
       'Curiosity in conversation',
@@ -14,8 +14,8 @@ const SYMBOL_KEY = [
   },
   {
     symbol: '⊜',
-    label: 'Regulated Mobilization',
-    definition: 'Purposeful activation with controlled and measured responses.',
+    label: 'You can handle daily stress without losing connection.',
+    definition: 'Activation is present, but grounded thinking and connection stay online.',
     behaviors: [
       'Assertive communication',
       'Direct action-taking',
@@ -24,20 +24,20 @@ const SYMBOL_KEY = [
     ]
   },
   {
-    symbol: '⊝',
-    label: 'Dysregulated Mobilization',
-    definition: 'Heightened activation with subtle threat sensitivity.',
+    symbol: '◑',
+    label: 'At the tipping point.',
+    definition: 'Something doesn’t feel safe. Grounded thinking is slipping as protection prepares to take over.',
     behaviors: [
-      'Irritable or shortened tone',
-      'Overthinking interactions',
-      'Reading negative intent into ambiguity',
-      'Persistent mental scanning for problems'
+      'Shorter patience and rising urgency',
+      'Narrowing focus under stress',
+      'Sensitivity to tone and ambiguity',
+      'Reduced access to flexible thinking'
     ]
   },
   {
     symbol: '◉',
-    label: 'Fight / Flight',
-    definition: 'Acute threat response with narrowed cognitive processing.',
+    label: 'Stress is running this.',
+    definition: 'Acute outward stress response with narrowed cognitive processing.',
     behaviors: [
       'Reactive or sharp responses',
       'Urgent need to resolve immediately',
@@ -46,9 +46,9 @@ const SYMBOL_KEY = [
     ]
   },
   {
-    symbol: '◉⇠',
-    label: 'Internalized Fight / Flight',
-    definition: 'Inward threat response with self-directed tension.',
+    symbol: '◯',
+    label: 'Holding it in.',
+    definition: 'Pressure builds inward while boundaries thin to preserve connection and reduce conflict.',
     behaviors: [
       'Self-blame after conflict',
       'Over-apologizing',
@@ -58,7 +58,7 @@ const SYMBOL_KEY = [
   },
   {
     symbol: '●',
-    label: 'Shutdown / Collapse',
+    label: 'I’m shutting down.',
     definition: 'Energy withdrawal with reduced emotional engagement.',
     behaviors: [
       'Withdrawing from interaction',

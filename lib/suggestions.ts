@@ -11,7 +11,7 @@ export type Suggestion = {
   intensity: 'low' | 'med';
 };
 
-const ALL_SYMBOLS = ['all', '●', '◉⇠', '◉', '⊝', '⊜', '⊕'];
+const ALL_SYMBOLS = ['all', '●', '◯', '◉', '◑', '⊜', '⊕'];
 
 const suggestionsLibrary: Suggestion[] = [
   {
@@ -26,7 +26,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'body-move-90',
     lane: 'body',
     categories: ['all'],
-    primarySymbols: ['all', '◉', '⊝', '⊜', '⊕'],
+    primarySymbols: ['all', '◉', '◑', '⊜', '⊕'],
     text: 'Move your body for 90 seconds (walk, stretch, shake out tension).',
     intensity: 'med'
   },
@@ -82,7 +82,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'cog-text-support',
     lane: 'cognitive',
     categories: ['all'],
-    primarySymbols: ['all', '●', '◉⇠', '◉', '⊝'],
+    primarySymbols: ['all', '●', '◯', '◉', '◑'],
     text: 'Text a trauma-informed person (one sentence is enough).',
     intensity: 'med'
   },
@@ -98,7 +98,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'conflict-delay-reply',
     lane: 'cognitive',
     categories: ['conflict'],
-    primarySymbols: ['all', '◉', '◉⇠', '⊝'],
+    primarySymbols: ['all', '◉', '◯', '◑'],
     text: 'Delay the reply. Space first, clarity second.',
     intensity: 'med'
   },
@@ -114,7 +114,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'shame-talk-younger-self',
     lane: 'cognitive',
     categories: ['shame_spiral'],
-    primarySymbols: ['all', '●', '◉⇠', '⊝'],
+    primarySymbols: ['all', '●', '◯', '◑'],
     text: 'Talk to yourself like you’re speaking to a younger version of you.',
     intensity: 'med'
   },
@@ -146,7 +146,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'people-ask-for-time',
     lane: 'cognitive',
     categories: ['people_pleasing'],
-    primarySymbols: ['all', '◉⇠', '⊝', '⊕'],
+    primarySymbols: ['all', '◯', '◑', '⊕'],
     text: 'Pause before saying yes. Ask for time.',
     intensity: 'low'
   },
@@ -154,7 +154,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'people-practice-no',
     lane: 'cognitive',
     categories: ['people_pleasing'],
-    primarySymbols: ['all', '◉⇠', '⊝', '⊜'],
+    primarySymbols: ['all', '◯', '◑', '⊜'],
     text: 'Practice saying no in one sentence. Save it for later.',
     intensity: 'low'
   },
@@ -162,7 +162,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'freeze-prioritize-rest-food-safety',
     lane: 'body',
     categories: ['freeze_stuck'],
-    primarySymbols: ['all', '●', '◉⇠'],
+    primarySymbols: ['all', '●', '◯'],
     text: 'Prioritize rest, food, and safe environments.',
     intensity: 'med'
   },
@@ -170,7 +170,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'freeze-nature-pet',
     lane: 'environment',
     categories: ['freeze_stuck'],
-    primarySymbols: ['all', '●', '◉⇠', '⊝'],
+    primarySymbols: ['all', '●', '◯', '◑'],
     text: 'Connect with nature or a pet.',
     intensity: 'low'
   },
@@ -178,7 +178,7 @@ const suggestionsLibrary: Suggestion[] = [
     id: 'anger-light-hearted-person',
     lane: 'cognitive',
     categories: ['anger_boundary'],
-    primarySymbols: ['all', '◉', '⊜', '⊝'],
+    primarySymbols: ['all', '◉', '⊜', '◑'],
     text: 'Think of someone who would make this moment light-hearted.',
     intensity: 'low'
   },
@@ -210,13 +210,13 @@ const suggestionsLibrary: Suggestion[] = [
 
 const LANE_ORDER: SuggestionLane[] = ['body', 'environment', 'cognitive'];
 
-export const PRIMARY_SYMBOL_PRIORITY = ['●', '◉⇠', '◉', '⊝', '⊜', '⊕'];
+export const PRIMARY_SYMBOL_PRIORITY = ['●', '◯', '◉', '◑', '⊜', '⊕'];
 
 export function getPrimarySymbol(symbols: string[]) {
   for (const symbol of PRIMARY_SYMBOL_PRIORITY) {
     if (symbols.includes(symbol)) return symbol;
   }
-  return '⊝';
+  return '◑';
 }
 
 function isCategoryMatch(suggestion: Suggestion, category: TabKey) {

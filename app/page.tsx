@@ -129,8 +129,9 @@ function getBodySignalGroup(tab: TabKey, selectedSymbols: string[]) {
   for (const symbol of PRIMARY_SYMBOL_PRIORITY) {
     if (!selectedSymbols.includes(symbol)) continue;
     if (symbol === '⊜') return 'balanced_activation';
+    if (symbol === '◑') return 'balanced_activation';
     if (symbol === '◉') return 'mobilized';
-    if (symbol === '◉⇠') return 'internalized_stress';
+    if (symbol === '◯') return 'internalized_stress';
     if (symbol === '●') return 'shutdown';
   }
 

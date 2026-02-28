@@ -17,15 +17,15 @@ export const ANCHOR_PILLS: AnchorPill[] = [
   {
     id: 'energized_but_steady',
     symbol: '⊜',
-    label: 'Fired up. Not flooded.',
+    label: 'You can handle daily stress without losing connection.',
     microDescription: 'You can handle daily stress without losing connection.',
     toneColor: '#7a7163'
   },
   {
     id: 'something_feels_off',
-    symbol: '⊝',
-    label: 'Something feels off.',
-    microDescription: 'Tension is building and your system is narrowing slightly.',
+    symbol: '◑',
+    label: 'At the tipping point.',
+    microDescription: 'Something doesn’t feel safe. Grounded thinking is slipping as protection prepares to take over.',
     toneColor: '#6d7286'
   },
   {
@@ -37,9 +37,9 @@ export const ANCHOR_PILLS: AnchorPill[] = [
   },
   {
     id: 'shrinking_to_keep_calm',
-    symbol: '◉⇠',
-    label: 'I’m shrinking to keep things calm.',
-    microDescription: 'You’re adjusting yourself to prevent conflict or disconnection.',
+    symbol: '◯',
+    label: 'Holding it in.',
+    microDescription: 'Pressure stays trapped inside while your boundaries thin to keep the surface calm.',
     toneColor: '#6d7c72'
   },
   {
