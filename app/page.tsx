@@ -530,7 +530,7 @@ export default function Page() {
       bodySignals: entry.bodySignals,
       nsState: entry.anchorStateIds.map((id) => {
         const item = ANCHOR_PILLS_BY_ID[id];
-        return item ? `${item.symbol} ${item.label}` : null;
+        return item ? `${item.symbol} ${item.title}` : null;
       }).filter(Boolean).join(' · '),
       emotionsSelected: entry.emotionsSelected,
       emotionsOther: entry.emotionsOther,
@@ -632,11 +632,11 @@ export default function Page() {
                             >
                               <span className="anchorLabelWrap">
                                 <span className="anchorSymbol" style={{ color: pill.toneColor }} aria-hidden>{pill.symbol}</span>
-                                <span>{pill.label}</span>
+                                <span>{pill.title}</span>
                               </span>
                             </button>
 
-                            <div className="anchorMicroDescription">{pill.microDescription}</div>
+                            <div className="anchorMicroDescription">{pill.description}</div>
                           </div>
                         );
                       })}
