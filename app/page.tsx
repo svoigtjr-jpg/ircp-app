@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
@@ -17,6 +17,7 @@ type Entry = {
   anchorStateIds: string[];
 
   bodySignals: string;
+  bodySignalsSelected: string[];
   emotionsSelected: string[];
   emotionsOther: string;
 
@@ -49,6 +50,33 @@ function toggle(arr: string[], v: string) {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
 
+function parseCommaSeparatedList(value: string) {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter((item, index, arr) => arr.findIndex((x) => x.toLowerCase() === item.toLowerCase()) === index);
+}
+
+function toCommaSeparatedList(items: string[]) {
+  return items.join(', ');
+}
+
+const BODY_SIGNAL_PILLS = [
+  'Jaw tight',
+  'Chest heavy',
+  'Shallow breath',
+  'Lump in throat',
+  'Stomach tight',
+  'Heart racing',
+  'Shoulders up',
+  'Buzzing energy',
+  'Restless legs',
+  'Head pressure',
+  'Numb/floaty',
+  'Warm face'
+];
+
 function makeEmptyEntry(tab: TabKey): Entry {
   return {
     id: uid(),
@@ -57,6 +85,7 @@ function makeEmptyEntry(tab: TabKey): Entry {
     situation: '',
     anchorStateIds: [],
     bodySignals: '',
+    bodySignalsSelected: [],
     emotionsSelected: [],
     emotionsOther: '',
     needsSelected: [],
@@ -79,6 +108,8 @@ export default function Page() {
 
   const [showMoreEmotions, setShowMoreEmotions] = useState(false);
   const [showMoreNeeds, setShowMoreNeeds] = useState(false);
+  const [anchorSelectionMessage, setAnchorSelectionMessage] = useState('');
+  const anchorSelectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useMemo(() => {
     if (selectedTab) setEntry((e) => ({ ...e, tab: selectedTab }));
@@ -119,10 +150,76 @@ export default function Page() {
     ? selectedAnchorItems.map((item) => `${item.symbol} ${item.label}`).join(' · ')
     : '—';
 
+  useEffect(() => {
+    return () => {
+      if (anchorSelectionTimerRef.current) {
+        clearTimeout(anchorSelectionTimerRef.current);
+      }
+    };
+  }, []);
+
   function toggleAnchorSelection(id: string) {
+    setEntry((x) => {
+      const selected = x.anchorStateIds.includes(id);
+
+      if (selected) {
+        if (anchorSelectionTimerRef.current) {
+          clearTimeout(anchorSelectionTimerRef.current);
+        }
+        setAnchorSelectionMessage('');
+        return {
+          ...x,
+          anchorStateIds: x.anchorStateIds.filter((value) => value !== id)
+        };
+      }
+
+      if (x.anchorStateIds.length >= 3) {
+        setAnchorSelectionMessage('Max 3 selected.');
+        if (anchorSelectionTimerRef.current) {
+          clearTimeout(anchorSelectionTimerRef.current);
+        }
+        anchorSelectionTimerRef.current = setTimeout(() => setAnchorSelectionMessage(''), 2000);
+        return x;
+      }
+
+      return {
+        ...x,
+        anchorStateIds: [...x.anchorStateIds, id]
+      };
+    });
+  }
+
+  function toggleBodySignalPill(value: string) {
+    setEntry((x) => {
+      const bodySignalsSelected = toggle(x.bodySignalsSelected, value);
+      const manualSignals = parseCommaSeparatedList(x.bodySignals).filter(
+        (item) => !BODY_SIGNAL_PILLS.some((pill) => pill.toLowerCase() === item.toLowerCase())
+      );
+      const bodySignals = toCommaSeparatedList([...bodySignalsSelected, ...manualSignals]);
+      return { ...x, bodySignalsSelected, bodySignals };
+    });
+  }
+
+  function handleBodySignalsChange(value: string) {
+    const parsed = parseCommaSeparatedList(value);
+    const bodySignalsSelected = BODY_SIGNAL_PILLS.filter((pill) => parsed.some((item) => item.toLowerCase() === pill.toLowerCase()));
+    setEntry((x) => ({ ...x, bodySignals: value, bodySignalsSelected }));
+  }
+
+  function toggleEmotion(value: string) {
     setEntry((x) => ({
       ...x,
-      anchorStateIds: toggle(x.anchorStateIds, id)
+      emotionsSelected: toggle(x.emotionsSelected, value),
+      emotionsOther: ''
+    }));
+  }
+
+  function handleOtherEmotionsChange(value: string) {
+    const parsed = parseCommaSeparatedList(value);
+    setEntry((x) => ({
+      ...x,
+      emotionsSelected: parsed,
+      emotionsOther: ''
     }));
   }
 
@@ -219,6 +316,7 @@ export default function Page() {
                     <div className="anchorHint">Choose up to 3.</div>
                   </div>
                 </div>
+                {anchorSelectionMessage && <div className="anchorHelperMessage">{anchorSelectionMessage}</div>}
 
                 <div className="grid2">
                   <div>
@@ -246,11 +344,6 @@ export default function Page() {
                       })}
                     </div>
 
-                    {entry.anchorStateIds.length > 3 && (
-                      <div className="anchorHelperMessage">
-                        You’ve selected more than 3. That’s okay. If it helps, try narrowing to the strongest few.
-                      </div>
-                    )}
                   </div>
 
                   {selectedTab === 'record_win' ? (
@@ -292,7 +385,7 @@ export default function Page() {
                     className="textarea"
                     value={entry.situation}
                     onChange={(e) => setEntry((x) => ({ ...x, situation: e.target.value }))}
-                    placeholder={cfg.situationPrompt}
+                    placeholder="Where/when did this happen? Keep it to 1–2 sentences."
                   />
                 </div>
               </div>
@@ -304,16 +397,32 @@ export default function Page() {
                   <div>
                     <div className="stepTitle">Body → Emotion</div>
                     <div className="sub">Sensations first. Then name it.</div>
+                    <div className="small">Tap what fits. Add your own words if needed.</div>
                   </div>
                 </div>
 
                 <div>
                   <div className="label">Body signals</div>
+                  <div className="pillRow" style={{ marginBottom: 8 }}>
+                    {BODY_SIGNAL_PILLS.map((signal) => {
+                      const active = entry.bodySignalsSelected.includes(signal);
+                      return (
+                        <button
+                          key={signal}
+                          type="button"
+                          className={`pill ${active ? 'pillEmotionActive' : ''}`}
+                          onClick={() => toggleBodySignalPill(signal)}
+                        >
+                          {signal}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <textarea
                     className="textarea"
                     value={entry.bodySignals}
-                    onChange={(e) => setEntry((x) => ({ ...x, bodySignals: e.target.value }))}
-                    placeholder="Jaw tight, chest heavy, buzzing energy, shallow breath…"
+                    onChange={(e) => handleBodySignalsChange(e.target.value)}
+                    placeholder="Jaw tight, chest heavy, buzzing energy…"
                   />
                   <div className="small">Tip: location + temperature + pressure + movement is plenty.</div>
                 </div>
@@ -324,23 +433,25 @@ export default function Page() {
                     {cfg.quickEmotions.map((p) => {
                       const active = entry.emotionsSelected.includes(p);
                       return (
-                        <div
+                        <button
                           key={p}
+                          type="button"
                           className={`pill ${active ? 'pillEmotionActive' : ''}`}
-                          onClick={() => setEntry((x) => ({ ...x, emotionsSelected: toggle(x.emotionsSelected, p) }))}
+                          onClick={() => toggleEmotion(p)}
                         >
                           {p}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
+                  <div className="small" style={{ marginTop: 8 }}>Most people pick 3–5.</div>
 
                   <div style={{ marginTop: 10 }}>
                     <div className="label">Other emotions</div>
                     <input
                       className="input"
-                      value={entry.emotionsOther}
-                      onChange={(e) => setEntry((x) => ({ ...x, emotionsOther: e.target.value }))}
+                      value={toCommaSeparatedList(entry.emotionsSelected)}
+                      onChange={(e) => handleOtherEmotionsChange(e.target.value)}
                       placeholder="Add your own words…"
                     />
                   </div>
