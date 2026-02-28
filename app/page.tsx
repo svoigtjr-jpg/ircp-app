@@ -1,9 +1,10 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
-import { IRCP_STATES, IRCP_STATES_BY_ID, resolveIrcpState } from '../lib/ircpStates';
+import { IRCP_STATES, IRCP_STATES_BY_ID, getStateDisplay, getStateSymbol, resolveIrcpState } from '../lib/ircpStates';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
 
@@ -31,6 +32,15 @@ type Entry = {
   // Record win only
   experienceType: string;
   experienceOther: string;
+};
+
+type HistoryEntry = {
+  id: string;
+  createdAt: string;
+  tab: TabKey;
+  nsStateId: string;
+  nsStateLabel: string;
+  situation: string;
 };
 
 function uid() {
@@ -77,6 +87,7 @@ function makeEmptyEntry(tab: TabKey): Entry {
 export default function Page() {
   const [selectedTab, setSelectedTab] = useState<TabKey | null>(null);
   const [entry, setEntry] = useState<Entry>(() => makeEmptyEntry('record_win'));
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const cfg: TabConfig | null = selectedTab ? TAB_CONFIGS[selectedTab] : null;
 
@@ -111,6 +122,10 @@ export default function Page() {
     setEntry(makeEmptyEntry(selectedTab));
   }
 
+  function formatHistoryDate(value: string) {
+    return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
   async function handleExportPdf() {
     if (!cfg) return;
 
@@ -133,6 +148,17 @@ export default function Page() {
     };
 
     await exportEntryToPdf(pdfEntry, cfg);
+    setHistory((prev) => [
+      {
+        id: uid(),
+        createdAt: new Date().toISOString(),
+        tab: entry.tab,
+        nsStateId: entry.nsStateId,
+        nsStateLabel: entry.nsStateLabel,
+        situation: entry.situation
+      },
+      ...prev
+    ].slice(0, 8));
   }
 
   return (
@@ -152,6 +178,7 @@ export default function Page() {
             )}
           </div>
           {cfg && <button className="btnLink changeTopicBtn" onClick={backToLanding}>Change topic</button>}
+          <Link href="/symbol-key" className="btnLink symbolKeyNav">Symbol Key</Link>
         </div>
 
         {!cfg ? (
@@ -208,19 +235,22 @@ export default function Page() {
                         setEntry((x) => ({
                           ...x,
                           nsStateId: e.target.value,
-                          nsStateLabel: nextState ? nextState.humanLabel : ''
+                          nsStateLabel: nextState ? nextState.label : ''
                         }));
                       }}
                       style={{ borderColor: entry.nsStateId ? accent : undefined }}
                     >
                       <option value="">Select...</option>
                       {IRCP_STATES.map((state) => (
-                        <option key={state.id} value={state.id}>{state.humanLabel}</option>
+                        <option key={state.id} value={state.id}>{getStateDisplay(state)}</option>
                       ))}
                     </select>
 
                     {shouldShowStateDetails && (
                       <div style={{ marginTop: 10 }}>
+                        <div className="small" style={{ marginBottom: 8 }}>
+                          Current State: {selectedState ? getStateDisplay(selectedState) : (entry.nsStateLabel || '—')}
+                        </div>
                         <div className="label" style={{ marginBottom: 4 }}>When I’m here, it sounds like…</div>
                         <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
                           {(selectedState?.expandedLines.length ? selectedState.expandedLines : ['—']).map((line) => (
@@ -427,7 +457,7 @@ export default function Page() {
                       <br />
                     </>
                   )}
-                  <strong>NS State:</strong> {entry.nsStateLabel || '—'}<br />
+                  <strong>NS State:</strong> {selectedState ? getStateDisplay(selectedState) : (entry.nsStateLabel || '—')}<br />
                   <strong>Emotions:</strong> {entry.emotionsSelected.join(', ') || '—'}{entry.emotionsOther ? ` + ${entry.emotionsOther}` : ''}<br />
                   <strong>Needs:</strong> {entry.needsSelected.join(', ') || '—'}{entry.needsOther ? ` + ${entry.needsOther}` : ''}
                 </div>
@@ -497,6 +527,25 @@ export default function Page() {
                         </label>
                       ))}
                     </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="card railCard">
+                <div className="label">Entry history</div>
+                {history.length === 0 ? (
+                  <div className="small">No entries exported yet.</div>
+                ) : (
+                  <div className="col" style={{ gap: 6 }}>
+                    {history.map((item) => {
+                      const symbol = getStateSymbol(item.nsStateId, item.nsStateLabel);
+                      const preview = item.situation ? ` ${item.situation}` : '';
+                      return (
+                        <div key={item.id} className="small">
+                          {symbol ? `${symbol} ` : ''}{formatHistoryDate(item.createdAt)} {preview || '—'}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

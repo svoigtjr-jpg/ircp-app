@@ -610,3 +610,39 @@ h3,
     page-break-after: auto;
   }
 }
+
+.symbolKeyNav {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.symbolKeyList {
+  display: grid;
+  gap: 12px;
+}
+
+.symbolKeySection {
+  padding: 14px;
+}
+
+.symbolKeyHeading {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: var(--text-strong);
+}
+
+.symbolKeyDefinition {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.symbolKeyBullets {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+
+.symbolKeyBullets li {
+  margin-bottom: 4px;
+}
