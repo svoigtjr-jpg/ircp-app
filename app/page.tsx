@@ -246,32 +246,32 @@ export default function Page() {
 
               {/* Step 1 */}
               <div className="card2 stepCard accentStripe" style={{ borderLeftColor: accent }}>
-                <div className="stepHeader">
+                <div className="stepHeader anchorStepHeader">
                   <div className="stepNum">1</div>
-                  <div>
-                    <div className="stepTitle">Anchor</div>
-                    <div className="sub">State + situation. 30 seconds.</div>
+                  <div className="anchorQuestionBlock">
+                    <div className="anchorPrompt">Which of these feels accurate?</div>
+                    <div className="anchorHint">Choose up to 3.</div>
                   </div>
                 </div>
 
                 <div className="grid2">
                   <div>
-                    <div className="anchorPrompt">Which of these feels accurate?</div>
-                    <div className="anchorHint">Choose up to 3.</div>
-
                     <div className="anchorStack" role="group" aria-label="Anchor check-in">
                       {ANCHOR_PILLS.map((pill) => {
                         const selected = entry.anchorStateIds.includes(pill.id);
                         const showDescription = hoverDescriptionId === pill.id || expandedDescriptionIds.includes(pill.id);
 
                         return (
-                          <div key={pill.id} className={`anchorItem ${showDescription ? 'anchorItemExpanded' : ''}`}>
+                          <div
+                            key={pill.id}
+                            className={`anchorItem ${showDescription ? 'anchorItemExpanded' : ''}`}
+                            onMouseEnter={() => scheduleHoverDescription(pill.id)}
+                            onMouseLeave={cancelHoverDescription}
+                          >
                             <button
                               type="button"
                               className={`anchorPill ${selected ? 'anchorPillSelected' : ''}`}
                               onClick={() => toggleAnchorSelection(pill.id)}
-                              onMouseEnter={() => scheduleHoverDescription(pill.id)}
-                              onMouseLeave={cancelHoverDescription}
                             >
                               <span className="anchorLabelWrap">
                                 <span className="anchorSymbol" style={{ color: pill.toneColor }} aria-hidden>{pill.symbol}</span>
@@ -282,11 +282,12 @@ export default function Page() {
 
                             <button
                               type="button"
-                              className="anchorInfoToggle"
+                              className="anchorInfoIcon"
                               onClick={() => toggleDescriptionReveal(pill.id)}
                               aria-expanded={showDescription}
+                              aria-label="Toggle note"
                             >
-                              {showDescription ? 'Hide note' : 'Show note'}
+                              i
                             </button>
 
                             {showDescription && (
