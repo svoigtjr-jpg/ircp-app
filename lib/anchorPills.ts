@@ -17,8 +17,8 @@ export const ANCHOR_PILLS: AnchorPill[] = [
   {
     id: 'energized_but_steady',
     symbol: '⊜',
-    label: 'Energized but steady.',
-    microDescription: 'There’s energy in your system, but it’s contained and usable.',
+    label: 'Fired up. Not flooded.',
+    microDescription: 'You can handle daily stress without losing connection.',
     toneColor: '#7a7163'
   },
   {
