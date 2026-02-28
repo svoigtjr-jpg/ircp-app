@@ -56,7 +56,6 @@ export default function CompassContent({ northStar, compact = false }: CompassCo
         <h2 className="compassTitle">User Compass</h2>
         <p className="compassSubtitle">Structure for reflection. Not instruction.</p>
         <div className="compassNorthStarInline">
-          <h3>North Star</h3>
           <p className="compassSubtitle" style={{ marginTop: 0 }}>{northStar.blurb}</p>
           <ul>
             {northStar.points.map((point) => (
