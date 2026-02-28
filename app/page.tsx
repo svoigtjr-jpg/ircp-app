@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
@@ -84,10 +84,6 @@ export default function Page() {
     if (selectedTab) setEntry((e) => ({ ...e, tab: selectedTab }));
   }, [selectedTab]);
 
-  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [hoverDescriptionId, setHoverDescriptionId] = useState<string | null>(null);
-  const [expandedDescriptionIds, setExpandedDescriptionIds] = useState<string[]>([]);
-
   const firstSelectedAnchor = entry.anchorStateIds[0] ? ANCHOR_PILLS_BY_ID[entry.anchorStateIds[0]] : null;
   const accent = firstSelectedAnchor?.toneColor ?? '#cdbfae';
 
@@ -128,30 +124,6 @@ export default function Page() {
       ...x,
       anchorStateIds: toggle(x.anchorStateIds, id)
     }));
-  }
-
-  function scheduleHoverDescription(id: string) {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-    }
-
-    hoverTimerRef.current = setTimeout(() => {
-      setHoverDescriptionId(id);
-    }, 300);
-  }
-
-  function cancelHoverDescription() {
-    if (hoverTimerRef.current) {
-      clearTimeout(hoverTimerRef.current);
-      hoverTimerRef.current = null;
-    }
-    setHoverDescriptionId(null);
-  }
-
-  function toggleDescriptionReveal(id: string) {
-    setExpandedDescriptionIds((prev) => (
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    ));
   }
 
   async function handleExportPdf() {
@@ -234,18 +206,12 @@ export default function Page() {
         ) : (
           <div className="layoutShell">
             <div className="mainColumn">
-              <div className="card2 stepCard">
-                <div className="stepHeader">
-                  <div className="stepNum">Start</div>
-                  <div>
-                    <div className="stepTitle">{cfg.label}</div>
-                    <div className="sub">{cfg.tagline}</div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 1 */}
               <div className="card2 stepCard accentStripe" style={{ borderLeftColor: accent }}>
+                <div style={{ marginBottom: 12 }}>
+                  <div className="stepTitle">{cfg.label}</div>
+                  <div className="sub">{cfg.tagline}</div>
+                </div>
+
                 <div className="stepHeader anchorStepHeader">
                   <div className="stepNum">1</div>
                   <div className="anchorQuestionBlock">
@@ -259,15 +225,9 @@ export default function Page() {
                     <div className="anchorStack" role="group" aria-label="Anchor check-in">
                       {ANCHOR_PILLS.map((pill) => {
                         const selected = entry.anchorStateIds.includes(pill.id);
-                        const showDescription = hoverDescriptionId === pill.id || expandedDescriptionIds.includes(pill.id);
 
                         return (
-                          <div
-                            key={pill.id}
-                            className={`anchorItem ${showDescription ? 'anchorItemExpanded' : ''}`}
-                            onMouseEnter={() => scheduleHoverDescription(pill.id)}
-                            onMouseLeave={cancelHoverDescription}
-                          >
+                          <div key={pill.id} className="anchorItem">
                             <button
                               type="button"
                               className={`anchorPill ${selected ? 'anchorPillSelected' : ''}`}
@@ -280,19 +240,7 @@ export default function Page() {
                               <span className={`anchorCheck ${selected ? 'anchorCheckVisible' : ''}`} aria-hidden>✓</span>
                             </button>
 
-                            <button
-                              type="button"
-                              className="anchorInfoIcon"
-                              onClick={() => toggleDescriptionReveal(pill.id)}
-                              aria-expanded={showDescription}
-                              aria-label="Toggle note"
-                            >
-                              i
-                            </button>
-
-                            {showDescription && (
-                              <div className="anchorMicroDescription">{pill.microDescription}</div>
-                            )}
+                            <div className="anchorMicroDescription">{pill.microDescription}</div>
                           </div>
                         );
                       })}
