@@ -8,6 +8,7 @@ import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
 import { ANCHOR_PILLS, ANCHOR_PILLS_BY_ID } from '../lib/anchorPills';
 import { ALL_CATEGORY_EMOTIONS, CATEGORY_EMOTION_PULLS } from '../lib/categoryPills';
+import { getPrimarySymbol, getTryOneSuggestions } from '../lib/suggestions';
 
 type Entry = {
   id: string;
@@ -25,11 +26,10 @@ type Entry = {
   emotionsOther: string;
 
   needsSelected: string[];
-  needsOther: string;
+  tryOneSuggestions: string[];
+  lastSuggestionsHash: string;
+  nextMoveText: string;
 
-  facts: string;
-  meaning: string;
-  nextRightStep: string;
   lockItIn: string;
 
   // Record win only
@@ -91,10 +91,9 @@ function makeEmptyEntry(tab: TabKey): Entry {
     emotionsCustom: '',
     emotionsOther: '',
     needsSelected: [],
-    needsOther: '',
-    facts: '',
-    meaning: '',
-    nextRightStep: '',
+    tryOneSuggestions: [],
+    lastSuggestionsHash: '',
+    nextMoveText: '',
     lockItIn: '',
     experienceType: '',
     experienceOther: ''
@@ -116,7 +115,9 @@ export default function Page() {
   const [bodySignalDraft, setBodySignalDraft] = useState('');
   const [emotionDraft, setEmotionDraft] = useState('');
   const [anchorSelectionMessage, setAnchorSelectionMessage] = useState('');
+  const [needsSelectionMessage, setNeedsSelectionMessage] = useState('');
   const anchorSelectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const needsSelectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useMemo(() => {
     if (selectedTab) setEntry((e) => ({ ...e, tab: selectedTab }));
@@ -167,17 +168,51 @@ export default function Page() {
     .map((id) => ANCHOR_PILLS_BY_ID[id])
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
-  const selectedAnchorSummary = selectedAnchorItems.length
-    ? selectedAnchorItems.map((item) => `${item.symbol} ${item.label}`).join(' · ')
-    : '—';
-
   useEffect(() => {
     return () => {
       if (anchorSelectionTimerRef.current) {
         clearTimeout(anchorSelectionTimerRef.current);
       }
+      if (needsSelectionTimerRef.current) {
+        clearTimeout(needsSelectionTimerRef.current);
+      }
     };
   }, []);
+
+  useEffect(() => {
+    const selectedSymbols = entry.anchorStateIds
+      .map((id) => ANCHOR_PILLS_BY_ID[id]?.symbol)
+      .filter((symbol): symbol is string => Boolean(symbol));
+
+    const primarySymbol = getPrimarySymbol(selectedSymbols);
+    const rotationSeed =
+      Math.abs(
+        Date.parse(entry.createdAt)
+        + entry.emotionsSelected.length * 11
+        + entry.bodySignalsSelected.length * 7
+        + entry.anchorStateIds.length * 5
+      );
+
+    const previousHash = window.localStorage.getItem('ircp:last-try-one-hash') || '';
+
+    const { suggestions, hash } = getTryOneSuggestions({
+      category: entry.tab,
+      primarySymbol,
+      rotationSeed,
+      previousHash
+    });
+
+    const suggestionText = suggestions.map((item) => item.text);
+    if (entry.lastSuggestionsHash === hash) return;
+
+    setEntry((x) => ({
+      ...x,
+      tryOneSuggestions: suggestionText,
+      lastSuggestionsHash: hash
+    }));
+
+    window.localStorage.setItem('ircp:last-try-one-hash', hash);
+  }, [entry.anchorStateIds, entry.bodySignalsSelected.length, entry.createdAt, entry.emotionsSelected.length, entry.tab]);
 
   function toggleAnchorSelection(id: string) {
     setEntry((x) => {
@@ -206,6 +241,36 @@ export default function Page() {
       return {
         ...x,
         anchorStateIds: [...x.anchorStateIds, id]
+      };
+    });
+  }
+
+  function toggleNeedSelection(value: string) {
+    setEntry((x) => {
+      const selected = x.needsSelected.includes(value);
+      if (selected) {
+        if (needsSelectionTimerRef.current) {
+          clearTimeout(needsSelectionTimerRef.current);
+        }
+        setNeedsSelectionMessage('');
+        return {
+          ...x,
+          needsSelected: x.needsSelected.filter((item) => item !== value)
+        };
+      }
+
+      if (x.needsSelected.length >= 3) {
+        setNeedsSelectionMessage('Max 3 selected.');
+        if (needsSelectionTimerRef.current) {
+          clearTimeout(needsSelectionTimerRef.current);
+        }
+        needsSelectionTimerRef.current = setTimeout(() => setNeedsSelectionMessage(''), 2000);
+        return x;
+      }
+
+      return {
+        ...x,
+        needsSelected: [...x.needsSelected, value]
       };
     });
   }
@@ -298,10 +363,12 @@ export default function Page() {
       emotionsSelected: entry.emotionsSelected,
       emotionsOther: entry.emotionsOther,
       needsSelected: entry.needsSelected,
-      needsOther: entry.needsOther,
-      story: entry.facts,
-      meaning: entry.meaning,
-      nextRightStep: entry.nextRightStep,
+      snapshotTopic: cfg.label,
+      snapshotSymbols: selectedAnchorItems.map((item) => item.symbol).join(' + '),
+      snapshotBodySignals: entry.bodySignalsSelected,
+      snapshotEmotions: entry.emotionsSelected,
+      tryOneSuggestions: entry.tryOneSuggestions,
+      nextMoveText: entry.nextMoveText,
       winOrReframe: entry.lockItIn,
       experienceType: entry.experienceType,
       experienceOther: entry.experienceOther
@@ -615,68 +682,88 @@ export default function Page() {
                 <div className="stepHeader">
                   <div className="stepNum">3</div>
                   <div>
-                    <div className="stepTitle">Meaning → Next step</div>
-                    <div className="sub">Need, facts, meaning, action. Keep it clean.</div>
+                    <div className="stepTitle">Meaning → Next Move</div>
+                    <div className="sub">Translate this moment into clarity and movement.</div>
                   </div>
                 </div>
 
                 <div style={{ marginBottom: 10 }}>
-                  <div className="label">Needs (quick picks)</div>
+                  <div className="label">Snapshot</div>
+                  <div className="stepMiniCard">
+                    <div className="snapshotRows">
+                      {cfg?.label && (
+                        <div className="snapshotRow">
+                          <span className="snapshotLabel">Topic</span>
+                          <span>{cfg.label}</span>
+                        </div>
+                      )}
+                      {selectedAnchorItems.length > 0 && (
+                        <div className="snapshotRow">
+                          <span className="snapshotLabel">Symbols</span>
+                          <span>{selectedAnchorItems.map((item) => item.symbol).join(' + ')}</span>
+                        </div>
+                      )}
+                      {entry.bodySignalsSelected.length > 0 && (
+                        <div className="snapshotRow">
+                          <span className="snapshotLabel">Body signals</span>
+                          <span>{entry.bodySignalsSelected.join(', ')}</span>
+                        </div>
+                      )}
+                      {entry.emotionsSelected.length > 0 && (
+                        <div className="snapshotRow">
+                          <span className="snapshotLabel">Emotions</span>
+                          <span>{entry.emotionsSelected.join(', ')}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: 10 }}>
+                  <div className="label">Need right now</div>
+                  <div className="small">Choose up to 3.</div>
+                  {needsSelectionMessage && <div className="anchorHelperMessage">{needsSelectionMessage}</div>}
                   <div className="pillRow">
-                    {cfg.quickNeeds.map((p) => {
+                    {['Space', 'Clarity', 'Respect', 'Reassurance', 'Support', 'Safety', 'Rest', 'Connection', 'Autonomy', 'Boundaries', 'Simplicity', 'Time'].map((p) => {
                       const active = entry.needsSelected.includes(p);
                       return (
-                        <div
+                        <button
                           key={p}
+                          type="button"
                           className={`pill ${active ? 'pillNeedActive' : ''}`}
-                          onClick={() => setEntry((x) => ({ ...x, needsSelected: toggle(x.needsSelected, p) }))}
+                          onClick={() => toggleNeedSelection(p)}
                         >
                           {p}
-                        </div>
+                          <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
+                        </button>
                       );
                     })}
                   </div>
+                </div>
 
-                  <div style={{ marginTop: 10 }}>
-                    <div className="label">Other needs</div>
-                    <input
-                      className="input"
-                      value={entry.needsOther}
-                      onChange={(e) => setEntry((x) => ({ ...x, needsOther: e.target.value }))}
-                      placeholder="Add your own needs…"
-                    />
+                <div style={{ marginBottom: 10 }}>
+                  <div className="label">Try one</div>
+                  <div className="small">No perfect choice. Pick one.</div>
+                  <div className="stepMiniCard">
+                    <ul className="tryOneList">
+                      {entry.tryOneSuggestions.map((item) => (
+                        <li key={item} className="tryOneItem">
+                          <span aria-hidden className="tryOneMarker">◻</span>
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
 
-                <div>
-                  <div className="label">Facts (what happened)</div>
-                  <textarea
-                    className="textarea"
-                    value={entry.facts}
-                    onChange={(e) => setEntry((x) => ({ ...x, facts: e.target.value }))}
-                    placeholder={cfg.factsPrompt}
-                  />
-                </div>
-
                 <div style={{ marginTop: 10 }}>
-                  <div className="label">Meaning</div>
-                  <textarea
-                    className="textarea"
-                    value={entry.meaning}
-                    onChange={(e) => setEntry((x) => ({ ...x, meaning: e.target.value }))}
-                    placeholder={cfg.meaningPrompt}
+                  <div className="label">One next move (optional)</div>
+                  <input
+                    className="input"
+                    value={entry.nextMoveText}
+                    onChange={(e) => setEntry((x) => ({ ...x, nextMoveText: e.target.value }))}
+                    placeholder="One sentence. What’s the smallest useful step?"
                   />
-                </div>
-
-                <div style={{ marginTop: 10 }}>
-                  <div className="label">Next right step</div>
-                  <textarea
-                    className="textarea"
-                    value={entry.nextRightStep}
-                    onChange={(e) => setEntry((x) => ({ ...x, nextRightStep: e.target.value }))}
-                    placeholder={cfg.stepPrompt}
-                  />
-                  <div className="small">Aim for one small next step — 2 minutes counts.</div>
                 </div>
 
                 <div style={{ marginTop: 10 }}>
@@ -694,22 +781,6 @@ export default function Page() {
                   <button className="btn btnPrimary" onClick={handleExportPdf}>Export PDF</button>
                 </div>
 
-                <div className="hr" />
-
-                <div className="label">Selected snapshot</div>
-                <div className="small accentStripe" style={{ borderLeftColor: accent }}>
-                  <strong>Topic:</strong> {cfg.label}<br />
-                  {selectedTab === 'record_win' && (
-                    <>
-                      <strong>Win type:</strong> {entry.experienceType || '—'}
-                      {entry.experienceType === 'Other experience' && entry.experienceOther ? ` (${entry.experienceOther})` : ''}
-                      <br />
-                    </>
-                  )}
-                  <strong>Anchor check-in:</strong> {selectedAnchorSummary}<br />
-                  <strong>Emotions:</strong> {entry.emotionsSelected.join(', ') || '—'}<br />
-                  <strong>Needs:</strong> {entry.needsSelected.join(', ') || '—'}{entry.needsOther ? ` + ${entry.needsOther}` : ''}
-                </div>
               </div>
             </div>
 
@@ -755,7 +826,7 @@ export default function Page() {
                           <input
                             type="checkbox"
                             checked={entry.needsSelected.includes(need)}
-                            onChange={() => setEntry((x) => ({ ...x, needsSelected: toggle(x.needsSelected, need) }))}
+                            onChange={() => toggleNeedSelection(need)}
                           />
                           <div className="checkText">{need}</div>
                         </label>
