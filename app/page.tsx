@@ -1,12 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import UserCompass from '../components/UserCompass';
 import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
-import { IRCP_STATES, IRCP_STATES_BY_ID, getStateDisplay, getStateSymbol, resolveIrcpState } from '../lib/ircpStates';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
+import { ANCHOR_PILLS, ANCHOR_PILLS_BY_ID } from '../lib/anchorPills';
 
 type Entry = {
   id: string;
@@ -14,8 +14,7 @@ type Entry = {
   tab: TabKey;
 
   situation: string;
-  nsStateId: string;
-  nsStateLabel: string;
+  anchorStateIds: string[];
 
   bodySignals: string;
   emotionsSelected: string[];
@@ -38,8 +37,7 @@ type HistoryEntry = {
   id: string;
   createdAt: string;
   tab: TabKey;
-  nsStateId: string;
-  nsStateLabel: string;
+  anchorStateIds: string[];
   situation: string;
 };
 
@@ -51,25 +49,13 @@ function toggle(arr: string[], v: string) {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
 
-function nsAccent(nsStateId: string) {
-  const s = (nsStateId || '').toLowerCase();
-  if (s.includes('ventral')) return '#6e9f8f';
-  if (s.includes('mobilized')) return '#c89a52';
-  if (s.includes('shutdown')) return '#6f8195';
-  if (s.includes('fawn')) return '#9a86a8';
-  if (s.includes('overstimulation') || s.includes('overstim')) return '#4f9aa3';
-  if (s.includes('dorsal')) return '#6d6e8b';
-  return '#cdbfae';
-}
-
 function makeEmptyEntry(tab: TabKey): Entry {
   return {
     id: uid(),
     createdAt: new Date().toISOString(),
     tab,
     situation: '',
-    nsStateId: '',
-    nsStateLabel: '',
+    anchorStateIds: [],
     bodySignals: '',
     emotionsSelected: [],
     emotionsOther: '',
@@ -98,9 +84,12 @@ export default function Page() {
     if (selectedTab) setEntry((e) => ({ ...e, tab: selectedTab }));
   }, [selectedTab]);
 
-  const accent = nsAccent(entry.nsStateId);
-  const selectedState = resolveIrcpState(entry.nsStateId, entry.nsStateLabel);
-  const shouldShowStateDetails = Boolean(entry.nsStateId || entry.nsStateLabel);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [hoverDescriptionId, setHoverDescriptionId] = useState<string | null>(null);
+  const [expandedDescriptionIds, setExpandedDescriptionIds] = useState<string[]>([]);
+
+  const firstSelectedAnchor = entry.anchorStateIds[0] ? ANCHOR_PILLS_BY_ID[entry.anchorStateIds[0]] : null;
+  const accent = firstSelectedAnchor?.toneColor ?? '#cdbfae';
 
   function startTopic(t: TabKey) {
     setSelectedTab(t);
@@ -126,6 +115,45 @@ export default function Page() {
     return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   }
 
+  const selectedAnchorItems = entry.anchorStateIds
+    .map((id) => ANCHOR_PILLS_BY_ID[id])
+    .filter((item): item is NonNullable<typeof item> => Boolean(item));
+
+  const selectedAnchorSummary = selectedAnchorItems.length
+    ? selectedAnchorItems.map((item) => `${item.symbol} ${item.label}`).join(' · ')
+    : '—';
+
+  function toggleAnchorSelection(id: string) {
+    setEntry((x) => ({
+      ...x,
+      anchorStateIds: toggle(x.anchorStateIds, id)
+    }));
+  }
+
+  function scheduleHoverDescription(id: string) {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+    }
+
+    hoverTimerRef.current = setTimeout(() => {
+      setHoverDescriptionId(id);
+    }, 300);
+  }
+
+  function cancelHoverDescription() {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setHoverDescriptionId(null);
+  }
+
+  function toggleDescriptionReveal(id: string) {
+    setExpandedDescriptionIds((prev) => (
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    ));
+  }
+
   async function handleExportPdf() {
     if (!cfg) return;
 
@@ -134,7 +162,10 @@ export default function Page() {
       tab: entry.tab,
       context: entry.situation,
       bodySignals: entry.bodySignals,
-      nsState: entry.nsStateLabel,
+      nsState: entry.anchorStateIds.map((id) => {
+        const item = ANCHOR_PILLS_BY_ID[id];
+        return item ? `${item.symbol} ${item.label}` : null;
+      }).filter(Boolean).join(' · '),
       emotionsSelected: entry.emotionsSelected,
       emotionsOther: entry.emotionsOther,
       needsSelected: entry.needsSelected,
@@ -153,8 +184,7 @@ export default function Page() {
         id: uid(),
         createdAt: new Date().toISOString(),
         tab: entry.tab,
-        nsStateId: entry.nsStateId,
-        nsStateLabel: entry.nsStateLabel,
+        anchorStateIds: entry.anchorStateIds,
         situation: entry.situation
       },
       ...prev
@@ -226,43 +256,50 @@ export default function Page() {
 
                 <div className="grid2">
                   <div>
-                    <div className="label">Nervous system state</div>
-                    <select
-                      className="select"
-                      value={entry.nsStateId}
-                      onChange={(e) => {
-                        const nextState = IRCP_STATES_BY_ID[e.target.value];
-                        setEntry((x) => ({
-                          ...x,
-                          nsStateId: e.target.value,
-                          nsStateLabel: nextState ? nextState.label : ''
-                        }));
-                      }}
-                      style={{ borderColor: entry.nsStateId ? accent : undefined }}
-                    >
-                      <option value="">Select...</option>
-                      {IRCP_STATES.map((state) => (
-                        <option key={state.id} value={state.id}>{getStateDisplay(state)}</option>
-                      ))}
-                    </select>
+                    <div className="anchorPrompt">Which of these feels accurate?</div>
+                    <div className="anchorHint">Choose up to 3.</div>
 
-                    {shouldShowStateDetails && (
-                      <div style={{ marginTop: 10 }}>
-                        <div className="small" style={{ marginBottom: 8 }}>
-                          Current State: {selectedState ? getStateDisplay(selectedState) : (entry.nsStateLabel || '—')}
-                        </div>
-                        <div className="label" style={{ marginBottom: 4 }}>When I’m here, it sounds like…</div>
-                        <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
-                          {(selectedState?.expandedLines.length ? selectedState.expandedLines : ['—']).map((line) => (
-                            <li key={line} style={{ marginBottom: 4 }}>{line}</li>
-                          ))}
-                        </ul>
-                        <div className="small" style={{ marginTop: 8, color: 'hsl(var(--muted) / 0.75)' }}>Stabilizers:</div>
-                        <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
-                          {(selectedState?.stabilizers.length ? selectedState.stabilizers : ['—']).map((line) => (
-                            <li key={line} style={{ marginBottom: 4 }}>{line}</li>
-                          ))}
-                        </ul>
+                    <div className="anchorStack" role="group" aria-label="Anchor check-in">
+                      {ANCHOR_PILLS.map((pill) => {
+                        const selected = entry.anchorStateIds.includes(pill.id);
+                        const showDescription = hoverDescriptionId === pill.id || expandedDescriptionIds.includes(pill.id);
+
+                        return (
+                          <div key={pill.id} className={`anchorItem ${showDescription ? 'anchorItemExpanded' : ''}`}>
+                            <button
+                              type="button"
+                              className={`anchorPill ${selected ? 'anchorPillSelected' : ''}`}
+                              onClick={() => toggleAnchorSelection(pill.id)}
+                              onMouseEnter={() => scheduleHoverDescription(pill.id)}
+                              onMouseLeave={cancelHoverDescription}
+                            >
+                              <span className="anchorLabelWrap">
+                                <span className="anchorSymbol" style={{ color: pill.toneColor }} aria-hidden>{pill.symbol}</span>
+                                <span>{pill.label}</span>
+                              </span>
+                              <span className={`anchorCheck ${selected ? 'anchorCheckVisible' : ''}`} aria-hidden>✓</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="anchorInfoToggle"
+                              onClick={() => toggleDescriptionReveal(pill.id)}
+                              aria-expanded={showDescription}
+                            >
+                              {showDescription ? 'Hide note' : 'Show note'}
+                            </button>
+
+                            {showDescription && (
+                              <div className="anchorMicroDescription">{pill.microDescription}</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {entry.anchorStateIds.length > 3 && (
+                      <div className="anchorHelperMessage">
+                        You’ve selected more than 3. That’s okay. If it helps, try narrowing to the strongest few.
                       </div>
                     )}
                   </div>
@@ -457,7 +494,7 @@ export default function Page() {
                       <br />
                     </>
                   )}
-                  <strong>NS State:</strong> {selectedState ? getStateDisplay(selectedState) : (entry.nsStateLabel || '—')}<br />
+                  <strong>Anchor check-in:</strong> {selectedAnchorSummary}<br />
                   <strong>Emotions:</strong> {entry.emotionsSelected.join(', ') || '—'}{entry.emotionsOther ? ` + ${entry.emotionsOther}` : ''}<br />
                   <strong>Needs:</strong> {entry.needsSelected.join(', ') || '—'}{entry.needsOther ? ` + ${entry.needsOther}` : ''}
                 </div>
@@ -466,23 +503,8 @@ export default function Page() {
 
             {/* Right toolbelt */}
             <div className="stickyRail">
-              <div className="card railCard" aria-label="North Star">
-                <div className="northStarIcon">✦</div>
-                <div>
-                  <div style={{ fontWeight: 900, marginBottom: 6 }}>North Star</div>
-                  <div className="small" style={{ marginBottom: 8 }}>{cfg.northStar.blurb}</div>
-                  <div className="col" style={{ gap: 8 }}>
-                    {cfg.northStar.points.map((p, i) => (
-                      <div key={i} className="small">
-                        <strong style={{ color: 'var(--text-strong)' }}>{p.label}:</strong> {p.text}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
               <div className="card railCard compassCard">
-                <UserCompass />
+                <UserCompass northStar={cfg.northStar} />
               </div>
 
               <div className="card railCard">
@@ -538,11 +560,11 @@ export default function Page() {
                 ) : (
                   <div className="col" style={{ gap: 6 }}>
                     {history.map((item) => {
-                      const symbol = getStateSymbol(item.nsStateId, item.nsStateLabel);
+                      const firstAnchor = item.anchorStateIds[0] ? ANCHOR_PILLS_BY_ID[item.anchorStateIds[0]] : null;
                       const preview = item.situation ? ` ${item.situation}` : '';
                       return (
                         <div key={item.id} className="small">
-                          {symbol ? `${symbol} ` : ''}{formatHistoryDate(item.createdAt)} {preview || '—'}
+                          {firstAnchor?.symbol ? `${firstAnchor.symbol} ` : ''}{formatHistoryDate(item.createdAt)} {preview || '—'}
                         </div>
                       );
                     })}

@@ -1,5 +1,14 @@
 import React from 'react';
 
+type NorthStarPoint = { label: string; text: string };
+
+type CompassContentProps = {
+  northStar: {
+    blurb: string;
+    points: NorthStarPoint[];
+  };
+};
+
 const FLOW_STEPS = [
   'Pause and orient to your body before writing.',
   'Choose the topic that best matches your current experience.',
@@ -39,7 +48,7 @@ const WHEN_NOT_TO_USE = [
   'If reflection increases distress, pause and seek trusted live support.'
 ];
 
-export default function CompassContent() {
+export default function CompassContent({ northStar }: CompassContentProps) {
   return (
     <article className="compass-print" aria-label="User Compass reference">
       <header className="compassSection">
@@ -54,6 +63,18 @@ export default function CompassContent() {
             <li>A guided reflection framework for nervous-system-aware journaling.</li>
             <li>A way to slow down, name experience, and restore clarity.</li>
             <li>A practical bridge from reaction to aligned action.</li>
+          </ul>
+        </section>
+
+        <section className="compassSection compassBreakAfter">
+          <h3>Topic North Star</h3>
+          <p className="compassSubtitle" style={{ marginTop: 0 }}>{northStar.blurb}</p>
+          <ul>
+            {northStar.points.map((point) => (
+              <li key={point.label}>
+                <strong>{point.label}:</strong> {point.text}
+              </li>
+            ))}
           </ul>
         </section>
 

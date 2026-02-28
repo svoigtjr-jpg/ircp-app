@@ -3,11 +3,19 @@
 import { useEffect, useRef, useState } from 'react';
 import CompassContent from './CompassContent';
 
-export default function UserCompass() {
+type NorthStarPoint = { label: string; text: string };
+
+type UserCompassProps = {
+  northStar: {
+    blurb: string;
+    points: NorthStarPoint[];
+  };
+};
+
+export default function UserCompass({ northStar }: UserCompassProps) {
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const panelRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,7 +63,6 @@ export default function UserCompass() {
           <aside
             id="user-compass-panel"
             className="userCompassPanel"
-            ref={panelRef}
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
@@ -76,7 +83,7 @@ export default function UserCompass() {
               </button>
             </div>
 
-            <CompassContent />
+            <CompassContent northStar={northStar} />
           </aside>
         </div>
       )}
