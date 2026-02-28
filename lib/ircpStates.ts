@@ -54,7 +54,7 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'shutdown_light',
-    label: 'Regulated Mobilization',
+    label: 'Balanced Activation',
     symbol: '⊜',
     humanLabel: 'Meh.',
     expandedLines: [
@@ -75,12 +75,12 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'fawn',
-    label: 'Internalized Fight / Flight',
-    symbol: '◉⇠',
+    label: 'Holding it in.',
+    symbol: '◯',
     humanLabel: 'I’ll adjust. Again.',
     expandedLines: ['I’ll do it to keep the peace.', 'I want to say no.', 'Shrinking feels easier.'],
-    clinicalLabel: 'Appeasement / fawn response (social survival strategy).',
-    commonPattern: 'Over-attunement to others, suppressed needs, internal tension under compliance.',
+    clinicalLabel: 'Internalized stress response (protective suppression pattern).',
+    commonPattern: 'Internal pressure builds while expression stays constrained and boundaries thin to preserve safety.',
     stabilizers: [
       'Don’t answer immediately.',
       'Say, “Let me think about that.”',
@@ -91,8 +91,8 @@ export const IRCP_STATES: IrcpState[] = [
   },
   {
     id: 'overstim',
-    label: 'Dysregulated Mobilization',
-    symbol: '⊝',
+    label: 'At the tipping point.',
+    symbol: '◑',
     humanLabel: 'LOUD NOISES!',
     expandedLines: [
       'One more noise and I combust.',
@@ -100,8 +100,8 @@ export const IRCP_STATES: IrcpState[] = [
       'Not another thing.',
       'My brain is full.'
     ],
-    clinicalLabel: 'Sensory overload / heightened arousal.',
-    commonPattern: 'Lower tolerance, irritability, sensory sensitivity, mental saturation.',
+    clinicalLabel: 'Escalating stress activation near loss of regulation.',
+    commonPattern: 'Something feels unsafe, thinking narrows, and protective responses prepare to take over.',
     stabilizers: [
       'Remove one source of noise.',
       'Step away from people for 5 minutes.',
@@ -138,10 +138,14 @@ const LEGACY_STATE_LABEL_MAP: Record<string, string> = {
   'fight / flight': 'mobilized',
   'meh.': 'shutdown_light',
   'regulated mobilization': 'shutdown_light',
+  'balanced activation': 'shutdown_light',
+  'you can handle daily stress without losing connection.': 'shutdown_light',
   'i’ll adjust. again.': 'fawn',
   'internalized fight / flight': 'fawn',
+  'holding it in.': 'fawn',
   'loud noises!': 'overstim',
   'dysregulated mobilization': 'overstim',
+  'at the tipping point.': 'overstim',
   'sleep. avoid. repeat.': 'shutdown_deep',
   'shutdown / collapse': 'shutdown_deep'
 };
