@@ -7,6 +7,7 @@ import { exportEntryToPdf, PdfEntry } from '../lib/pdf';
 import { TAB_CONFIGS, TabConfig, TabKey } from '../lib/tabs';
 import { EMOTIONS, NEEDS } from '../lib/vocab';
 import { ANCHOR_PILLS, ANCHOR_PILLS_BY_ID } from '../lib/anchorPills';
+import { ALL_CATEGORY_EMOTIONS, CATEGORY_EMOTION_PULLS } from '../lib/categoryPills';
 
 type Entry = {
   id: string;
@@ -18,7 +19,9 @@ type Entry = {
 
   bodySignals: string;
   bodySignalsSelected: string[];
+  bodySignalsCustom: string;
   emotionsSelected: string[];
+  emotionsCustom: string;
   emotionsOther: string;
 
   needsSelected: string[];
@@ -50,14 +53,6 @@ function toggle(arr: string[], v: string) {
   return arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
 }
 
-function parseCommaSeparatedList(value: string) {
-  return value
-    .split(',')
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .filter((item, index, arr) => arr.findIndex((x) => x.toLowerCase() === item.toLowerCase()) === index);
-}
-
 function toCommaSeparatedList(items: string[]) {
   return items.join(', ');
 }
@@ -71,11 +66,16 @@ const BODY_SIGNAL_PILLS = [
   'Heart racing',
   'Shoulders up',
   'Buzzing energy',
+  'Shaky',
   'Restless legs',
   'Head pressure',
   'Numb/floaty',
-  'Warm face'
+  'Warm face',
+  'Cold hands'
 ];
+
+const BODY_SIGNAL_SET = new Set(BODY_SIGNAL_PILLS.map((item) => item.toLowerCase()));
+const EMOTION_SET = new Set(ALL_CATEGORY_EMOTIONS.map((item) => item.toLowerCase()));
 
 function makeEmptyEntry(tab: TabKey): Entry {
   return {
@@ -86,7 +86,9 @@ function makeEmptyEntry(tab: TabKey): Entry {
     anchorStateIds: [],
     bodySignals: '',
     bodySignalsSelected: [],
+    bodySignalsCustom: '',
     emotionsSelected: [],
+    emotionsCustom: '',
     emotionsOther: '',
     needsSelected: [],
     needsOther: '',
@@ -106,8 +108,13 @@ export default function Page() {
 
   const cfg: TabConfig | null = selectedTab ? TAB_CONFIGS[selectedTab] : null;
 
+  const [showStep2MoreEmotions, setShowStep2MoreEmotions] = useState(false);
   const [showMoreEmotions, setShowMoreEmotions] = useState(false);
   const [showMoreNeeds, setShowMoreNeeds] = useState(false);
+  const [showBodySignalAdd, setShowBodySignalAdd] = useState(false);
+  const [showEmotionAdd, setShowEmotionAdd] = useState(false);
+  const [bodySignalDraft, setBodySignalDraft] = useState('');
+  const [emotionDraft, setEmotionDraft] = useState('');
   const [anchorSelectionMessage, setAnchorSelectionMessage] = useState('');
   const anchorSelectionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -117,25 +124,39 @@ export default function Page() {
 
   const firstSelectedAnchor = entry.anchorStateIds[0] ? ANCHOR_PILLS_BY_ID[entry.anchorStateIds[0]] : null;
   const accent = firstSelectedAnchor?.toneColor ?? '#cdbfae';
+  const emotionPulls = CATEGORY_EMOTION_PULLS[entry.tab];
 
   function startTopic(t: TabKey) {
     setSelectedTab(t);
     setEntry(makeEmptyEntry(t));
+    setShowStep2MoreEmotions(false);
     setShowMoreEmotions(false);
     setShowMoreNeeds(false);
+    setShowBodySignalAdd(false);
+    setShowEmotionAdd(false);
+    setBodySignalDraft('');
+    setEmotionDraft('');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function backToLanding() {
     setSelectedTab(null);
+    setShowStep2MoreEmotions(false);
     setShowMoreEmotions(false);
     setShowMoreNeeds(false);
+    setShowBodySignalAdd(false);
+    setShowEmotionAdd(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function resetEntry() {
     if (!selectedTab) return;
     setEntry(makeEmptyEntry(selectedTab));
+    setShowStep2MoreEmotions(false);
+    setShowBodySignalAdd(false);
+    setShowEmotionAdd(false);
+    setBodySignalDraft('');
+    setEmotionDraft('');
   }
 
   function formatHistoryDate(value: string) {
@@ -192,35 +213,74 @@ export default function Page() {
   function toggleBodySignalPill(value: string) {
     setEntry((x) => {
       const bodySignalsSelected = toggle(x.bodySignalsSelected, value);
-      const manualSignals = parseCommaSeparatedList(x.bodySignals).filter(
-        (item) => !BODY_SIGNAL_PILLS.some((pill) => pill.toLowerCase() === item.toLowerCase())
+      const bodySignalsCustom = toCommaSeparatedList(
+        bodySignalsSelected.filter((item) => !BODY_SIGNAL_SET.has(item.toLowerCase()))
       );
-      const bodySignals = toCommaSeparatedList([...bodySignalsSelected, ...manualSignals]);
-      return { ...x, bodySignalsSelected, bodySignals };
+      return {
+        ...x,
+        bodySignalsSelected,
+        bodySignalsCustom,
+        bodySignals: toCommaSeparatedList(bodySignalsSelected)
+      };
     });
   }
 
-  function handleBodySignalsChange(value: string) {
-    const parsed = parseCommaSeparatedList(value);
-    const bodySignalsSelected = BODY_SIGNAL_PILLS.filter((pill) => parsed.some((item) => item.toLowerCase() === pill.toLowerCase()));
-    setEntry((x) => ({ ...x, bodySignals: value, bodySignalsSelected }));
+  function addBodySignal() {
+    const value = bodySignalDraft.trim();
+    if (!value) return;
+    setEntry((x) => {
+      const alreadySelected = x.bodySignalsSelected.some((item) => item.toLowerCase() === value.toLowerCase());
+      if (alreadySelected) return x;
+
+      const bodySignalsSelected = [...x.bodySignalsSelected, value];
+      const bodySignalsCustom = toCommaSeparatedList(
+        bodySignalsSelected.filter((item) => !BODY_SIGNAL_SET.has(item.toLowerCase()))
+      );
+
+      return {
+        ...x,
+        bodySignalsSelected,
+        bodySignalsCustom,
+        bodySignals: toCommaSeparatedList(bodySignalsSelected)
+      };
+    });
+    setBodySignalDraft('');
   }
 
   function toggleEmotion(value: string) {
-    setEntry((x) => ({
-      ...x,
-      emotionsSelected: toggle(x.emotionsSelected, value),
-      emotionsOther: ''
-    }));
+    setEntry((x) => {
+      const emotionsSelected = toggle(x.emotionsSelected, value);
+      const emotionsCustom = toCommaSeparatedList(
+        emotionsSelected.filter((item) => !EMOTION_SET.has(item.toLowerCase()))
+      );
+      return {
+        ...x,
+        emotionsSelected,
+        emotionsCustom,
+        emotionsOther: emotionsCustom
+      };
+    });
   }
 
-  function handleOtherEmotionsChange(value: string) {
-    const parsed = parseCommaSeparatedList(value);
-    setEntry((x) => ({
-      ...x,
-      emotionsSelected: parsed,
-      emotionsOther: ''
-    }));
+  function addEmotion() {
+    const value = emotionDraft.trim();
+    if (!value) return;
+
+    setEntry((x) => {
+      const alreadySelected = x.emotionsSelected.some((item) => item.toLowerCase() === value.toLowerCase());
+      const emotionsSelected = alreadySelected ? x.emotionsSelected : [...x.emotionsSelected, value];
+      const emotionsCustom = toCommaSeparatedList(
+        emotionsSelected.filter((item) => !EMOTION_SET.has(item.toLowerCase()))
+      );
+
+      return {
+        ...x,
+        emotionsSelected,
+        emotionsCustom,
+        emotionsOther: emotionsCustom
+      };
+    });
+    setEmotionDraft('');
   }
 
   async function handleExportPdf() {
@@ -402,7 +462,7 @@ export default function Page() {
                 </div>
 
                 <div>
-                  <div className="label">Body signals</div>
+                  <div className="label">Body signals (tap what’s true)</div>
                   <div className="pillRow" style={{ marginBottom: 8 }}>
                     {BODY_SIGNAL_PILLS.map((signal) => {
                       const active = entry.bodySignalsSelected.includes(signal);
@@ -414,23 +474,58 @@ export default function Page() {
                           onClick={() => toggleBodySignalPill(signal)}
                         >
                           {signal}
+                          <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
                         </button>
                       );
                     })}
+                    {entry.bodySignalsSelected
+                      .filter((signal) => !BODY_SIGNAL_SET.has(signal.toLowerCase()))
+                      .map((signal) => (
+                        <button
+                          key={signal}
+                          type="button"
+                          className="pill pillEmotionActive"
+                          onClick={() => toggleBodySignalPill(signal)}
+                        >
+                          {signal}
+                          <span className="pillCheck pillCheckVisible">✓</span>
+                        </button>
+                      ))}
                   </div>
+                  <button type="button" className="btnLink" onClick={() => setShowBodySignalAdd((s) => !s)}>+ Add one</button>
+                  {showBodySignalAdd && (
+                    <div style={{ marginTop: 8 }}>
+                      <div className="label">Add a body signal (optional)</div>
+                      <div className="inlineAddRow">
+                        <input
+                          className="input"
+                          value={bodySignalDraft}
+                          onChange={(e) => setBodySignalDraft(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addBodySignal();
+                            }
+                          }}
+                          placeholder="Type one…"
+                        />
+                        <button type="button" className="btn" onClick={addBodySignal}>Add</button>
+                      </div>
+                    </div>
+                  )}
                   <textarea
                     className="textarea"
-                    value={entry.bodySignals}
-                    onChange={(e) => handleBodySignalsChange(e.target.value)}
+                    value={toCommaSeparatedList(entry.bodySignalsSelected)}
+                    readOnly
                     placeholder="Jaw tight, chest heavy, buzzing energy…"
                   />
-                  <div className="small">Tip: location + temperature + pressure + movement is plenty.</div>
+                  <div className="small">Auto-filled from your selections.</div>
                 </div>
 
                 <div style={{ marginTop: 12 }}>
-                  <div className="label">Emotions (quick picks)</div>
+                  <div className="label">Emotions (tap what fits)</div>
                   <div className="pillRow">
-                    {cfg.quickEmotions.map((p) => {
+                    {emotionPulls.suggested.map((p) => {
                       const active = entry.emotionsSelected.includes(p);
                       return (
                         <button
@@ -440,20 +535,77 @@ export default function Page() {
                           onClick={() => toggleEmotion(p)}
                         >
                           {p}
+                          <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
                         </button>
                       );
                     })}
                   </div>
                   <div className="small" style={{ marginTop: 8 }}>Most people pick 3–5.</div>
 
+                  <button type="button" className="drawerBtn" style={{ marginTop: 10 }} onClick={() => setShowStep2MoreEmotions((s) => !s)}>
+                    {showStep2MoreEmotions ? 'Hide more emotions ▲' : 'More emotions ▼'}
+                  </button>
+                  {showStep2MoreEmotions && (
+                    <div className="drawerPanel">
+                      <div className="pillRow">
+                        {emotionPulls.more.map((p) => {
+                          const active = entry.emotionsSelected.includes(p);
+                          return (
+                            <button
+                              key={p}
+                              type="button"
+                              className={`pill ${active ? 'pillEmotionActive' : ''}`}
+                              onClick={() => toggleEmotion(p)}
+                            >
+                              {p}
+                              <span className={`pillCheck ${active ? 'pillCheckVisible' : ''}`}>✓</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {entry.emotionsSelected.filter((emotion) => !emotionPulls.suggested.includes(emotion) && !emotionPulls.more.includes(emotion)).length > 0 && (
+                    <div className="pillRow" style={{ marginTop: 10 }}>
+                      {entry.emotionsSelected
+                        .filter((emotion) => !emotionPulls.suggested.includes(emotion) && !emotionPulls.more.includes(emotion))
+                        .map((emotion) => (
+                          <button
+                            key={emotion}
+                            type="button"
+                            className="pill pillEmotionActive"
+                            onClick={() => toggleEmotion(emotion)}
+                          >
+                            {emotion}
+                            <span className="pillCheck pillCheckVisible">✓</span>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+
                   <div style={{ marginTop: 10 }}>
-                    <div className="label">Other emotions</div>
-                    <input
-                      className="input"
-                      value={toCommaSeparatedList(entry.emotionsSelected)}
-                      onChange={(e) => handleOtherEmotionsChange(e.target.value)}
-                      placeholder="Add your own words…"
-                    />
+                    <button type="button" className="btnLink" onClick={() => setShowEmotionAdd((s) => !s)}>+ Add one</button>
+                    {showEmotionAdd && (
+                      <>
+                        <div className="label">Add an emotion (optional)</div>
+                        <div className="inlineAddRow">
+                          <input
+                            className="input"
+                            value={emotionDraft}
+                            onChange={(e) => setEmotionDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                addEmotion();
+                              }
+                            }}
+                            placeholder="Add your own word…"
+                          />
+                          <button type="button" className="btn" onClick={addEmotion}>Add</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -555,7 +707,7 @@ export default function Page() {
                     </>
                   )}
                   <strong>Anchor check-in:</strong> {selectedAnchorSummary}<br />
-                  <strong>Emotions:</strong> {entry.emotionsSelected.join(', ') || '—'}{entry.emotionsOther ? ` + ${entry.emotionsOther}` : ''}<br />
+                  <strong>Emotions:</strong> {entry.emotionsSelected.join(', ') || '—'}<br />
                   <strong>Needs:</strong> {entry.needsSelected.join(', ') || '—'}{entry.needsOther ? ` + ${entry.needsOther}` : ''}
                 </div>
               </div>
@@ -580,7 +732,7 @@ export default function Page() {
                           <input
                             type="checkbox"
                             checked={entry.emotionsSelected.includes(emo)}
-                            onChange={() => setEntry((x) => ({ ...x, emotionsSelected: toggle(x.emotionsSelected, emo) }))}
+                            onChange={() => toggleEmotion(emo)}
                           />
                           <div className="checkText">{emo}</div>
                         </label>
