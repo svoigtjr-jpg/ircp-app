@@ -131,6 +131,20 @@ h3,
 .pillEmotionActive { background: hsl(var(--emo-tint)); border-color: hsl(var(--border)); }
 .pillNeedActive { background: hsl(var(--need-tint)); border-color: hsl(var(--border)); }
 
+.pillCheck { margin-left: 6px; opacity: 0; color: hsl(var(--muted)); font-size: 11px; }
+.pillCheckVisible { opacity: 0.7; }
+
+.inlineAddRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.inlineAddRow .btn { flex-shrink: 0; }
+@media (max-width: 680px) {
+  .inlineAddRow { align-items: stretch; }
+  .inlineAddRow .btn { width: 72px; }
+}
+
 .btnRow { display: flex; gap: 10px; flex-wrap: wrap; }
 .btn {
   border: 1px solid hsl(var(--border));
